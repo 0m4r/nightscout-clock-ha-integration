@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the leading v; must match manifest.json"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the default branch
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$REF" != "refs/heads/main" ]]; then
+            echo "::error::Releases must be triggered from main."
+            exit 1
+          fi
+
+  tests-and-lint:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements_test.txt
+      - name: Install test dependencies
+        run: python -m pip install -r requirements_test.txt
+      - name: Run Ruff
+        run: ruff check --isolated --select E4,E7,E9,F custom_components/nsclock tests
+      - name: Run tests
+        run: pytest -vv
+
+  hassfest:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Validate with Hassfest
+        uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate with HACS
+        uses: hacs/action@main
+        with:
+          category: integration
+
+  publish:
+    needs:
+      - tests-and-lint
+      - hassfest
+      - hacs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Validate release version and tag
+        id: release
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$REF" != "refs/heads/main" ]]; then
+            echo "::error::Releases must be triggered from main."
+            exit 1
+          fi
+
+          manifest_version="$(jq -er '.version | select(type == "string" and length > 0)' custom_components/nsclock/manifest.json)"
+          if [[ "$RELEASE_VERSION" != "$manifest_version" ]]; then
+            echo "::error::Requested version $RELEASE_VERSION does not match manifest version $manifest_version."
+            exit 1
+          fi
+
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version must be a semantic version such as 1.2.3 or 1.2.3-beta.1."
+            exit 1
+          fi
+
+          current_main_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "$current_main_sha" != "$SHA" ]]; then
+            echo "::error::main has advanced since this workflow was started. Start a new release run."
+            exit 1
+          fi
+
+          tag="v$RELEASE_VERSION"
+          existing_tag="$(git ls-remote --tags --refs origin "refs/tags/$tag")"
+          if [[ -n "$existing_tag" ]]; then
+            echo "::error::Tag $tag already exists."
+            exit 1
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          SHA: ${{ github.sha }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$RELEASE_VERSION" == *-* ]]; then
+            gh release create "$TAG" \
+              --target "$SHA" \
+              --title "$TAG" \
+              --generate-notes \
+              --prerelease
+          else
+            gh release create "$TAG" \
+              --target "$SHA" \
+              --title "$TAG" \
+              --generate-notes
+          fi
