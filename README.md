@@ -37,9 +37,25 @@ After adding the integration:
     - **Default melody**: RTTTL string for the "Play Alarm Melody" button (default: `high:d=4,o=5,b=125:4e7,p,4e7`).
     - **Enable restart button**: Toggle to show a restart button (disabled by default).
 
+## Device settings
+
+Brightness mode and level, time format, clock name, alarm enable switches, and
+alarm thresholds are editable in Home Assistant. Changes are staged locally;
+they are not sent to the clock until `nsclock.apply_settings` is called. Target
+an entity from the clock being configured:
+
+```yaml
+action: nsclock.apply_settings
+data:
+  entity_id: select.brightness_mode_setting
+```
+
+Applying settings saves the full clock configuration to preserve fields that
+Home Assistant does not expose, restarts the clock, and waits for it to return.
+
 ## Development
 
-See [CONTRIBRISE.md](CONTRIBRISE.md) for development guidelines.
+See [CONTRIBUTE.md](CONTRIBUTE.md) for development guidelines.
 
 ## Test Run
 

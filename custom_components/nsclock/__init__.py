@@ -5,14 +5,22 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.const import ATTR_ENTITY_ID, Platform
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_registry as er
 
 from . import api
 from .coordinator import NightscoutClockCoordinator
-from .const import DOMAIN, CONF_HOST, CONF_PASSWORD
+from .const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    DOMAIN,
+    SERVICE_APPLY_SETTINGS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,12 +29,49 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.SWITCH,
     Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.TEXT,
 ]
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     """Set up NSClock integration from YAML (not used, kept for compatibility)."""
     hass.data.setdefault(DOMAIN, {})
+
+    async def async_apply_settings(call: ServiceCall) -> None:
+        """Apply staged settings for the device identified by the target entity."""
+        registry = er.async_get(hass)
+        config_entry_ids: set[str] = set()
+        for entity_id in call.data[ATTR_ENTITY_ID]:
+            entity = registry.async_get(entity_id)
+            if entity is None or entity.config_entry_id is None:
+                raise HomeAssistantError(
+                    "Select an entity belonging to a configured NSClock device"
+                )
+            config_entry_ids.add(entity.config_entry_id)
+
+        if len(config_entry_ids) != 1:
+            raise HomeAssistantError(
+                "Select entities from exactly one NSClock device"
+            )
+        entry_id = config_entry_ids.pop()
+        config_entry = hass.config_entries.async_get_entry(entry_id)
+        if config_entry is None or config_entry.domain != DOMAIN:
+            raise HomeAssistantError(
+                "Select an entity belonging to a configured NSClock device"
+            )
+        domain_data = hass.data[DOMAIN].get(entry_id)
+        if domain_data is None:
+            raise HomeAssistantError("The selected NSClock device is not loaded")
+        await domain_data["coordinator"].async_apply_settings()
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_APPLY_SETTINGS,
+        async_apply_settings,
+        schema=vol.Schema({vol.Required(ATTR_ENTITY_ID): cv.entity_ids}),
+    )
     return True
 
 

@@ -14,3 +14,12 @@ restart:
     entity_id:
       description: The button entity to press.
       example: "button.restart"
+apply_settings:
+  name: Apply settings
+  description: Save staged settings to one NSClock and restart it.
+  fields:
+    entity_id:
+      name: Entity
+      description: An entity belonging to the NSClock to configure.
+      required: true
+      example: "select.brightness_mode_setting"

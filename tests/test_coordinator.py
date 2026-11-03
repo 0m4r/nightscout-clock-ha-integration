@@ -26,6 +26,19 @@ async def test_coordinator_refresh_success(hass: Any, mock_config_entry: MockCon
     data = await coordinator._async_update_data()
     assert data["status"]["sgv"] == 118
     assert data["firmware_version"] == "1.2.3"
+    assert data["config"]["clock_name"] == "Test Clock"
+
+
+async def test_cached_config_remains_available_between_refreshes(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    coordinator = await make_coordinator(hass, mock_config_entry, mock_api_client)
+    first_data = await coordinator._async_update_data()
+    second_data = await coordinator._async_update_data()
+
+    assert first_data["config"]["clock_name"] == "Test Clock"
+    assert second_data["config"]["clock_name"] == "Test Clock"
+    assert mock_api_client.get_config.await_count == 1
 
 
 async def test_zero_glucose_maps_to_none(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:

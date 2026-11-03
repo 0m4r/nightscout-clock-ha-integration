@@ -36,7 +36,7 @@ pip install -e .
 pytest -vv
 ```
 
-All 21 tests should pass. If tests fail, check the test errors section below.
+All 28 tests should pass. If tests fail, check the test errors section below.
 
 ### 6. Code Style
 
@@ -118,7 +118,7 @@ nightscout-clock-ha-integration/
 │   ├── test_button.py             # Button entity tests
 │   └── fixtures/                  # Test fixtures (status.json)
 ├── README.md                      # User documentation
-├── CONTRIBRISE.md                 # These contribution guidelines
+├── CONTRIBUTE.md                  # These contribution guidelines
 ├── pytest.ini                     # Pytest configuration
 └── openapi.yaml                   # OpenAPI spec of the clock API
 ```

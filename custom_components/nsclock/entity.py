@@ -34,6 +34,7 @@ class NightscoutClockEntity(CoordinatorEntity[NightscoutClockCoordinator]):
         self._config_entry = config_entry
         self._object_id = object_id or class_object_id
         self._attr_object_id = self._object_id
+        self._attr_unique_id = f"{config_entry.unique_id}_{self._object_id}"
         self._attr_name = name
         if device_class is not None:
             self._attr_device_class = device_class

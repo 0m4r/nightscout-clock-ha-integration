@@ -532,8 +532,8 @@ Add these only after the firmware endpoint exists.
 10. Add tests for API parsing, coordinator behavior, auth retry, and entity states.
 11. Add README with installation, configuration, entities, and automation examples.
 12. Release v1.
-13. Implement read-only config diagnostics.
-14. Implement staged settings apply workflow.
+13. Implement read-only config diagnostics. **✅ COMPLETE** - mapped supported `/config.json` fields to diagnostic entities with cached refresh.
+14. Implement staged settings apply workflow. **✅ COMPLETE** - writable settings stage locally; `nsclock.apply_settings` refreshes and preserves the full config, saves, restarts, waits for recovery, and refreshes diagnostics.
 15. Optionally implement API-source glucose reporting.
 16. Add `/api/hardware` firmware endpoint and OpenAPI schema.
 17. Add HA hardware-telemetry coordinator and entities.

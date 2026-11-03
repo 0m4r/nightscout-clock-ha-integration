@@ -30,6 +30,16 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
             NightscoutClockDataSourceSensor(coordinator, entry),
             NightscoutClockSourceStatusSensor(coordinator, entry),
             NightscoutClockFirmwareVersionSensor(coordinator, entry),
+            NightscoutClockBrightnessModeSensor(coordinator, entry),
+            NightscoutClockBrightnessLevelSensor(coordinator, entry),
+            NightscoutClockUnitsSensor(coordinator, entry),
+            NightscoutClockTimeFormatSensor(coordinator, entry),
+            NightscoutClockClockNameSensor(coordinator, entry),
+            NightscoutClockDefaultFaceSensor(coordinator, entry),
+            NightscoutClockFaceCycleIntervalSensor(coordinator, entry),
+            NightscoutClockAlarmHighThresholdSensor(coordinator, entry),
+            NightscoutClockAlarmLowThresholdSensor(coordinator, entry),
+            NightscoutClockAlarmUrgentLowThresholdSensor(coordinator, entry),
         ]
     )
 
@@ -135,4 +145,185 @@ class NightscoutClockFirmwareVersionSensor(NightscoutClockEntity, SensorEntity):
         if self.coordinator.data:
             return self.coordinator.data.get("firmware_version")
         return None
+
+
+class NightscoutClockConfigValueSensor(NightscoutClockEntity, SensorEntity):
+    """Read-only configuration value sensor."""
+
+    def __init__(
+        self,
+        coordinator: NightscoutClockCoordinator,
+        config_entry: Any,
+        object_id: str,
+        name: str,
+        config_key: str,
+        icon: str | None = None,
+        entity_category: EntityCategory | None = None,
+    ) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id=object_id,
+            name=name,
+            entity_category=entity_category,
+            icon=icon,
+        )
+        self._config_key = config_key
+
+    @property
+    def native_value(self) -> Any:
+        if not self.coordinator.data:
+            return None
+        config = self.coordinator.data.get("config") or {}
+        return config.get(self._config_key)
+
+
+class NightscoutClockBrightnessModeSensor(NightscoutClockConfigValueSensor):
+    """Brightness mode sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="brightness_mode",
+            name="Brightness Mode",
+            config_key="brightness_mode",
+            icon="mdi:brightness-6",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockBrightnessLevelSensor(NightscoutClockConfigValueSensor):
+    """Brightness level sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="brightness_level",
+            name="Brightness Level",
+            config_key="brightness_level",
+            icon="mdi:brightness-5",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockUnitsSensor(NightscoutClockConfigValueSensor):
+    """Glucose units sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="glucose_units",
+            name="Glucose Units",
+            config_key="units",
+            icon="mdi:beaker",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockTimeFormatSensor(NightscoutClockConfigValueSensor):
+    """Time format sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="time_format",
+            name="Time Format",
+            config_key="time_format",
+            icon="mdi:clock-time-four",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockClockNameSensor(NightscoutClockConfigValueSensor):
+    """Clock name sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="clock_name",
+            name="Clock Name",
+            config_key="clock_name",
+            icon="mdi:badge-account",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockDefaultFaceSensor(NightscoutClockConfigValueSensor):
+    """Default face sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="default_face",
+            name="Default Face",
+            config_key="default_face",
+            icon="mdi:monitor-dashboard",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockFaceCycleIntervalSensor(NightscoutClockConfigValueSensor):
+    """Face cycle interval sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="face_cycle_interval",
+            name="Face Cycle Interval",
+            config_key="face_cycle_interval_seconds",
+            icon="mdi:timer-outline",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockAlarmHighThresholdSensor(NightscoutClockConfigValueSensor):
+    """High alarm threshold sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="alarm_high_threshold",
+            name="Alarm High Threshold",
+            config_key="alarm_high_value",
+            icon="mdi:alert",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockAlarmLowThresholdSensor(NightscoutClockConfigValueSensor):
+    """Low alarm threshold sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="alarm_low_threshold",
+            name="Alarm Low Threshold",
+            config_key="alarm_low_value",
+            icon="mdi:alert-circle",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+
+
+class NightscoutClockAlarmUrgentLowThresholdSensor(NightscoutClockConfigValueSensor):
+    """Urgent-low alarm threshold sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="alarm_urgent_low_threshold",
+            name="Alarm Urgent Low Threshold",
+            config_key="alarm_urgent_low_value",
+            icon="mdi:alert-octagon",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
 

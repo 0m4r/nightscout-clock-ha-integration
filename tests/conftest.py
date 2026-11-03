@@ -59,6 +59,22 @@ def mock_api_client() -> Generator[Any, None, None]:
         client.set_display_power = AsyncMock(return_value={"status": "ok"})
         client.play_alarm = AsyncMock(return_value={"status": "ok"})
         client.restart = AsyncMock(return_value={"status": "ok"})
-        client.get_config = AsyncMock(return_value={})
+        client.get_config = AsyncMock(
+            return_value={
+                "brightness_mode": "manual",
+                "brightness_level": 50,
+                "time_format": "24",
+                "clock_name": "Test Clock",
+                "alarm_high_enabled": True,
+                "alarm_low_enabled": True,
+                "alarm_urgent_low_enabled": False,
+                "alarm_high_value": 250,
+                "alarm_low_value": 70,
+                "alarm_urgent_low_value": 55,
+                "api_secret": "preserve-this-hidden-value",
+                "wifi_password": "preserve-this-hidden-password",
+            }
+        )
+        client.save_config = AsyncMock(return_value={"status": "ok"})
 
         yield client

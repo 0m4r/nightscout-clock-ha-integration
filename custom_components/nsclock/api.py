@@ -144,5 +144,13 @@ class NightscoutClockApiClient:
         return await self._request("POST", "/api/reset", {})
 
     async def get_config(self) -> dict[str, Any]:
-        """Get current configuration."""
+        """Get current configuration.
+
+        Refreshes /config.json no more often than every 5-15 minutes because these are
+        persisted settings, not live telemetry.
+        """
         return await self._request("GET", "/config.json")
+
+    async def save_config(self, config: dict[str, Any]) -> dict[str, Any]:
+        """Save the complete device configuration."""
+        return await self._request("POST", "/api/save", config)

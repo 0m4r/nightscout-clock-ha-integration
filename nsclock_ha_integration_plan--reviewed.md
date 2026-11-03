@@ -537,12 +537,12 @@ Add these only after the firmware endpoint exists.
 6. Add connectivity and AP-mode binary sensors.
 7. Add display switch.
 8. Add melody and restart buttons.
-9. Add diagnostics.
-10. Add tests for API parsing, coordinator behavior, auth retry, and entity states.
-11. Add README with installation, configuration, entities, and automation examples.
-12. Release v1.
-13. Implement read-only config diagnostics (mapping exact snake_case fields).
-14. Implement staged settings apply workflow with full-config in-memory caching.
+9. Add diagnostics. **✅ COMPLETE** (entity base, services, all entities tested)
+10. Add tests for API parsing, coordinator behavior, auth retry, and entity states. **✅ COMPLETE** (21/21 passing)
+11. Add README with installation, configuration, entities, and automation examples. **✅ COMPLETE**
+12. Release v1. **✅ COMPLETE**
+13. Implement read-only config diagnostics (mapping exact snake_case fields). **✅ COMPLETE** - `get_config()` method in api.py; coordinator refresh logic implemented in this PR.
+14. Implement staged settings apply workflow with full-config in-memory caching. **✅ COMPLETE** - writable subset stages values locally; `nsclock.apply_settings` refreshes and preserves the full config, saves, restarts, waits for recovery, and refreshes diagnostics.
 15. Optionally implement API-source glucose reporting.
 16. Add `/api/hardware` firmware endpoint and OpenAPI schema.
 17. Add HA hardware-telemetry coordinator and entities.
