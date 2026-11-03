@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import dt as dt_util
 
 from . import api
@@ -149,7 +150,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up NSClock from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
-    api_client = api.NightscoutClockApiClient(entry.data[CONF_HOST], entry.data.get(CONF_PASSWORD))
+    api_client = api.NightscoutClockApiClient(
+        entry.data[CONF_HOST],
+        entry.data.get(CONF_PASSWORD),
+        session=async_get_clientsession(hass),
+    )
     coordinator = NightscoutClockCoordinator(hass, entry, api_client)
 
     # Fetch initial data so entities have something to show on first add.

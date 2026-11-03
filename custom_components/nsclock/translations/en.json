@@ -1,7 +1,15 @@
 {
   "config": {
-    "step": {"user": {"data": {"host": "Host or IP address", "password": "Web interface password"}}},
-    "error": {"cannot_connect": "Failed to connect", "invalid_auth": "Invalid authentication"},
+    "step": {
+      "user": {"data": {"host": "Host or IP address", "password": "Web interface password"}},
+      "reauth_confirm": {"data": {"password": "New web interface password"}}
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "auth_not_enabled": "Web authentication is not enabled on the clock",
+      "missing_password": "Enter the clock's web interface password"
+    },
     "abort": {"already_configured": "Device is already configured"}
   }
 }
