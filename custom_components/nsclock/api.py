@@ -154,3 +154,9 @@ class NightscoutClockApiClient:
     async def save_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """Save the complete device configuration."""
         return await self._request("POST", "/api/save", config)
+
+    async def report_glucose_entries(
+        self, entries: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Append glucose entries to the API glucose source."""
+        return await self._request("POST", "/api/v1/entries", entries)

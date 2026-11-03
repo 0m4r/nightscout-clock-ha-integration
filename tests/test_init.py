@@ -3,7 +3,10 @@
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
+import pytest
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
@@ -16,6 +19,7 @@ async def test_setup_entry_creates_entities(hass: Any, mock_config_entry: MockCo
     assert hass.states.get("number.brightness_level_setting") is not None
     assert hass.states.get("text.clock_name_setting") is not None
     assert hass.services.has_service("nsclock", "apply_settings")
+    assert hass.services.has_service("nsclock", "report_glucose")
 
 
 async def test_unload_entry(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
@@ -60,3 +64,110 @@ async def test_apply_settings_service_applies_selected_device(
 
     saved_config = mock_api_client.save_config.await_args.args[0]
     assert saved_config["brightness_mode"] == "auto_dimmed"
+
+
+async def test_report_glucose_service_posts_entry_for_api_source(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    mock_api_client.get_status.return_value = {
+        **mock_api_client.get_status.return_value,
+        "bgSource": "API",
+    }
+
+    await hass.services.async_call(
+        "nsclock",
+        "report_glucose",
+        {
+            "entity_id": "sensor.data_source",
+            "sgv": 118,
+            "direction": "Flat",
+            "trend": 4,
+            "timestamp": "2026-10-19T14:39:00+00:00",
+        },
+        blocking=True,
+    )
+
+    mock_api_client.report_glucose_entries.assert_awaited_once_with(
+        [
+            {
+                "dateString": "2026-10-19T14:39:00.000Z",
+                "sgv": 118,
+                "direction": "Flat",
+                "trend": 4,
+                "date": 1_792_420_740_000,
+            }
+        ]
+    )
+
+
+async def test_report_glucose_service_rejects_non_api_source(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    with pytest.raises(HomeAssistantError, match="not 'API'"):
+        await hass.services.async_call(
+            "nsclock",
+            "report_glucose",
+            {
+                "entity_id": "sensor.data_source",
+                "sgv": 118,
+                "timestamp": "2026-10-19T14:39:00+00:00",
+            },
+            blocking=True,
+        )
+
+    mock_api_client.report_glucose_entries.assert_not_awaited()
+
+
+async def test_report_glucose_service_rejects_invalid_values(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    mock_api_client.get_status.return_value = {
+        **mock_api_client.get_status.return_value,
+        "bgSource": "API",
+    }
+
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(
+            "nsclock",
+            "report_glucose",
+            {
+                "entity_id": "sensor.data_source",
+                "sgv": 0,
+                "timestamp": "2026-10-19T14:39:00+00:00",
+            },
+            blocking=True,
+        )
+
+    mock_api_client.report_glucose_entries.assert_not_awaited()
+
+
+async def test_report_glucose_service_requires_timezone(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    with pytest.raises(vol.Invalid):
+        await hass.services.async_call(
+            "nsclock",
+            "report_glucose",
+            {
+                "entity_id": "sensor.data_source",
+                "sgv": 118,
+                "timestamp": "2026-10-19T14:39:00",
+            },
+            blocking=True,
+        )
+
+    mock_api_client.report_glucose_entries.assert_not_awaited()

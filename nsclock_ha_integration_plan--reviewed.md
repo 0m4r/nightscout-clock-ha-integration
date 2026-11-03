@@ -300,15 +300,14 @@ Only after the save/apply workflow is proven:
 
 The official UI treats network settings specially because applying another clock’s settings could move the device onto a different network. It also prevents web-auth settings from being imported from a settings file.
 
-## Phase 4 — Optional API-source bridge
-
-Only implement after v1 is stable.
+## Phase 4 — API-source bridge ✅ COMPLETE
 
 Expose:
 
 ```yaml
-service: nsclock.report_glucose
+action: nsclock.report_glucose
 data:
+  entity_id: sensor.data_source
   sgv: 118
   direction: Flat
   trend: 4
@@ -317,12 +316,18 @@ data:
 
 Behavior:
 
-- Convert timestamp to Unix milliseconds.
+- Require a positive integer `sgv` in mg/dL and a timezone-aware timestamp.
+- Resolve exactly one loaded clock from the target entity.
+- Fetch `/api/status` immediately before writing and require `bgSource` to be `API`.
+- Convert the timestamp to UTC and Unix milliseconds.
 - Build one `GlucoseEntry`.
 - POST a single-entry array to `/api/v1/entries`.
-
-- Allow the call only when `sensor.data_source` is `API`, or return a clear error otherwise.
+- Return a clear error when the source cannot be verified or the device rejects the entry.
 - Do not expose `DELETE /api/v1/entries` as a normal HA service.
+
+The API source endpoint is only registered when the clock’s data source is `API`.
+The service is implemented in the integration; the remaining phase work is the
+optional hardware telemetry endpoint and entities.
 
 The API source endpoint is only registered when the clock’s data source is `API`.
 
@@ -511,6 +516,8 @@ Add these only after the firmware endpoint exists.
 - [ ] Invalid RTTTL produces a clear error.
 - [ ] Restart is disabled by default.
 - [ ] Restart recovers and refreshes firmware version.
+- [x] `nsclock.report_glucose` targets one clock, verifies API source mode, and posts one entry.
+- [x] Glucose service rejects non-positive values and timestamps without a timezone.
 
 ### Hardware telemetry
 
@@ -543,7 +550,7 @@ Add these only after the firmware endpoint exists.
 12. Release v1. **✅ COMPLETE**
 13. Implement read-only config diagnostics (mapping exact snake_case fields). **✅ COMPLETE** - `get_config()` method in api.py; coordinator refresh logic implemented in this PR.
 14. Implement staged settings apply workflow with full-config in-memory caching. **✅ COMPLETE** - writable subset stages values locally; `nsclock.apply_settings` refreshes and preserves the full config, saves, restarts, waits for recovery, and refreshes diagnostics.
-15. Optionally implement API-source glucose reporting.
+15. Implement API-source glucose reporting. **✅ COMPLETE** - `nsclock.report_glucose` validates inputs, targets one clock, verifies current API source mode, and posts one entry.
 16. Add `/api/hardware` firmware endpoint and OpenAPI schema.
 17. Add HA hardware-telemetry coordinator and entities.
 18. Release hardware-telemetry support.

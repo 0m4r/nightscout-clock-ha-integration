@@ -58,6 +58,7 @@ def mock_api_client() -> Generator[Any, None, None]:
         client.login = AsyncMock(return_value={"status": "ok"})
         client.set_display_power = AsyncMock(return_value={"status": "ok"})
         client.play_alarm = AsyncMock(return_value={"status": "ok"})
+        client.report_glucose_entries = AsyncMock(return_value={"status": "ok"})
         client.restart = AsyncMock(return_value={"status": "ok"})
         client.get_config = AsyncMock(
             return_value={

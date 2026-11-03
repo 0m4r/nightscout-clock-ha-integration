@@ -53,6 +53,28 @@ data:
 Applying settings saves the full clock configuration to preserve fields that
 Home Assistant does not expose, restarts the clock, and waits for it to return.
 
+## Reporting glucose to an API-source clock
+
+The `nsclock.report_glucose` service can send one glucose reading to a clock
+whose configured data source is `API`. The service checks the clock's current
+source immediately before sending; it fails rather than writing if the source
+is not `API`. Values must be positive integers in mg/dL, and timestamps must
+include a timezone:
+
+```yaml
+action: nsclock.report_glucose
+data:
+  entity_id: sensor.data_source
+  sgv: 118
+  direction: Flat
+  trend: 4
+  timestamp: "2026-10-19T14:39:00+00:00"
+```
+
+The selected entity identifies which clock receives the entry. The timestamp
+is converted to UTC and sent to the firmware as Unix milliseconds. Do not use
+this service as a substitute for validating the reading at its source.
+
 ## Development
 
 See [CONTRIBUTE.md](CONTRIBUTE.md) for development guidelines.

@@ -23,3 +23,30 @@ apply_settings:
       description: An entity belonging to the NSClock to configure.
       required: true
       example: "select.brightness_mode_setting"
+report_glucose:
+  name: Report glucose
+  description: Report one glucose reading in mg/dL to an NSClock currently using the API source.
+  fields:
+    entity_id:
+      name: Entity
+      description: An entity belonging to the NSClock that should receive the reading.
+      required: true
+      example: "sensor.data_source"
+    sgv:
+      name: Glucose
+      description: Positive glucose value in mg/dL.
+      required: true
+      example: 118
+    timestamp:
+      name: Timestamp
+      description: Reading timestamp in ISO 8601 format with a timezone.
+      required: true
+      example: "2026-10-19T14:39:00+00:00"
+    direction:
+      name: Direction
+      description: Optional Nightscout trend direction.
+      example: "Flat"
+    trend:
+      name: Trend
+      description: Optional numeric fallback trend value.
+      example: 4

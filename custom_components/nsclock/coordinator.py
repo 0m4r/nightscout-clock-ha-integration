@@ -102,6 +102,39 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         async with self._apply_lock:
             await self._async_apply_staged_settings()
 
+    async def async_report_glucose(self, entry: dict[str, Any]) -> None:
+        """Append a glucose entry only when the clock is currently in API mode."""
+        try:
+            status = await self.client.get_status()
+        except ConfigEntryAuthFailed:
+            raise
+        except Exception as error:
+            raise HomeAssistantError(
+                f"Unable to verify the NSClock glucose source: {error}"
+            ) from error
+
+        if not isinstance(status, dict) or status.get("bgSource") != "API":
+            source = status.get("bgSource") if isinstance(status, dict) else None
+            raise HomeAssistantError(
+                f"Cannot report glucose because the NSClock source is {source!r}, not 'API'"
+            )
+
+        try:
+            result = await self.client.report_glucose_entries([entry])
+        except ConfigEntryAuthFailed:
+            raise
+        except Exception as error:
+            raise HomeAssistantError(
+                f"Failed to report glucose to NSClock: {error}"
+            ) from error
+
+        if not isinstance(result, dict) or result.get("status") != "ok":
+            raise HomeAssistantError("The NSClock rejected the glucose entry")
+
+        updated_data = dict(self.data or {})
+        updated_data["status"] = status
+        self.async_set_updated_data(updated_data)
+
     async def _async_apply_staged_settings(self) -> None:
         """Apply one snapshot of staged settings."""
         staged_config = self._pending_config.copy()
