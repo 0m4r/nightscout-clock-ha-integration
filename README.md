@@ -2,29 +2,25 @@
 
 ## Installation
 
-### Option 1: Manual Installation via HACS (recommended)
+### HACS
 
-1.  Download the contents of the `custom_components/nsclock` directory.
-2.  Place the `nsclock` folder in your Home Assistant `custom_components` directory:
-    - HassOS: `addons/ hassio_host/share/ha/core_addons/` (or via SSH: `~/addons/configuration.yaml` location)
-    - Home Assistant OS: `share/addons/` → `custom_components/`
-    - Home Assistant Container: `/config/config_files/`
-3.  Restart Home Assistant.
-4.  Go to **Settings → Devices and Services → Add Integration** and search for "Nightscout Clock".
+1. In Home Assistant, open **HACS → Integrations**.
+2. Select the three-dot menu, then **Custom repositories**.
+3. Add `https://github.com/0m4r/nightscout-clock-ha-integration` with the
+   category **Integration**.
+4. Find **Nightscout Clock** in HACS and download it.
+5. Restart Home Assistant.
+6. Go to **Settings → Devices & services → Add integration** and search for
+   **Nightscout Clock**.
 
-### Option 2: Manual Installation via File Editor
+### Manual installation
 
-1.  Create a virtual environment and install dependencies:
-
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install homeassistant pytest pytest-asyncio pytest-homeassistant-custom-component aiohttp
-    ```
-
-2.  Copy the `custom_components/nsclock` directory to your Home Assistant configuration's `custom_components` folder.
-3.  Restart Home Assistant.
-4.  Go to **Settings → Devices and Services → Add Integration** and search for "Nightscout Clock".
+1. Copy the `custom_components/nsclock` directory from this repository into
+   the Home Assistant configuration directory at
+   `/config/custom_components/nsclock`.
+2. Restart Home Assistant.
+3. Go to **Settings → Devices & services → Add integration** and search for
+   **Nightscout Clock**.
 
 ### Configuration
 
