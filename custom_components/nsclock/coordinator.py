@@ -221,7 +221,8 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if status.get("sgv") == 0:
             status["sgv"] = None
 
-        data: dict[str, Any] = {"status": status}
+        data: dict[str, Any] = dict(self.data or {})
+        data["status"] = status
 
         now = time.monotonic()
         if (
