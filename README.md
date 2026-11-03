@@ -76,7 +76,7 @@ this service as a substitute for validating the reading at its source.
 
 ## Development
 
-See [CONTRIBUTE.md](CONTRIBUTE.md) for development guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## Test Run
 
