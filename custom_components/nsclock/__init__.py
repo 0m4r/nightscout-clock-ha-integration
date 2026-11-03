@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -25,6 +25,10 @@ from .const import (
     SERVICE_APPLY_SETTINGS,
     SERVICE_REPORT_GLUCOSE,
 )
+from .runtime_data import (
+    NightscoutClockConfigEntry,
+    NightscoutClockRuntimeData,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +41,8 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
     Platform.TEXT,
 ]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 def _validate_sgv(value: Any) -> int:
@@ -61,9 +67,7 @@ def _validate_glucose_timestamp(value: datetime) -> datetime:
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
-    """Set up NSClock integration from YAML (not used, kept for compatibility)."""
-    hass.data.setdefault(DOMAIN, {})
-
+    """Register services for NSClock config entries."""
     def get_target_coordinator(call: ServiceCall) -> NightscoutClockCoordinator:
         """Resolve the one loaded NSClock selected by the service target."""
         registry = er.async_get(hass)
@@ -82,14 +86,18 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
             )
         entry_id = config_entry_ids.pop()
         config_entry = hass.config_entries.async_get_entry(entry_id)
-        if config_entry is None or config_entry.domain != DOMAIN:
+        if (
+            config_entry is None
+            or config_entry.domain != DOMAIN
+            or config_entry.state is not ConfigEntryState.LOADED
+        ):
             raise HomeAssistantError(
                 "Select an entity belonging to a configured NSClock device"
             )
-        domain_data = hass.data[DOMAIN].get(entry_id)
-        if domain_data is None:
+        runtime_data = config_entry.runtime_data
+        if not isinstance(runtime_data, NightscoutClockRuntimeData):
             raise HomeAssistantError("The selected NSClock device is not loaded")
-        return domain_data["coordinator"]
+        return runtime_data.coordinator
 
     async def async_apply_settings(call: ServiceCall) -> None:
         """Apply staged settings for the device identified by the target entity."""
@@ -146,10 +154,8 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: NightscoutClockConfigEntry) -> bool:
     """Set up NSClock from a config entry."""
-    hass.data.setdefault(DOMAIN, {})
-
     api_client = api.NightscoutClockApiClient(
         entry.data[CONF_HOST],
         entry.data.get(CONF_PASSWORD),
@@ -160,10 +166,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Fetch initial data so entities have something to show on first add.
     await coordinator.async_config_entry_first_refresh()
 
-    hass.data[DOMAIN][entry.entry_id] = {
-        "api": api_client,
-        "coordinator": coordinator,
-    }
+    entry.runtime_data = NightscoutClockRuntimeData(api_client, coordinator)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -171,16 +174,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: NightscoutClockConfigEntry) -> bool:
     """Unload NSClock config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id, None)
-        if not hass.data[DOMAIN]:
-            hass.data.pop(DOMAIN, None)
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def async_reload_entry(
+    hass: HomeAssistant, entry: NightscoutClockConfigEntry
+) -> None:
     """Reload the NSClock config entry when options change."""
     await hass.config_entries.async_reload(entry.entry_id)

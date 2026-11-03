@@ -4,16 +4,17 @@ from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
 
-from .const import DEFAULT_MELODY, DOMAIN
+from .api import NightscoutClockApiClient
+from .const import DEFAULT_MELODY
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
+from .runtime_data import NightscoutClockConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock button entities."""
-    domain_data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: NightscoutClockCoordinator = domain_data["coordinator"]
-    api = domain_data["api"]
+    coordinator = entry.runtime_data.coordinator
+    api = entry.runtime_data.api
 
     buttons: list[ButtonEntity] = [
         NightscoutClockPlayAlarmButton(coordinator, entry, api),
@@ -32,8 +33,8 @@ class NightscoutClockPlayAlarmButton(NightscoutClockEntity, ButtonEntity):
     def __init__(
         self,
         coordinator: NightscoutClockCoordinator,
-        config_entry: Any,
-        api,
+        config_entry: NightscoutClockConfigEntry,
+        api: NightscoutClockApiClient,
     ) -> None:
         super().__init__(
             coordinator,
@@ -55,8 +56,8 @@ class NightscoutClockRestartButton(NightscoutClockEntity, ButtonEntity):
     def __init__(
         self,
         coordinator: NightscoutClockCoordinator,
-        config_entry: Any,
-        api,
+        config_entry: NightscoutClockConfigEntry,
+        api: NightscoutClockApiClient,
     ) -> None:
         super().__init__(
             coordinator,

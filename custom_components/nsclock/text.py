@@ -7,16 +7,14 @@ from typing import Any
 from homeassistant.components.text import TextEntity, TextMode
 from homeassistant.helpers.entity import EntityCategory
 
-from .const import DOMAIN
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
+from .runtime_data import NightscoutClockConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock text entities."""
-    coordinator: NightscoutClockCoordinator = hass.data[DOMAIN][entry.entry_id][
-        "coordinator"
-    ]
+    coordinator: NightscoutClockCoordinator = entry.runtime_data.coordinator
     async_add_entities([NightscoutClockNameText(coordinator, entry)])
 
 

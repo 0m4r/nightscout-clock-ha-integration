@@ -9,15 +9,14 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 
-from .const import DOMAIN
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
+from .runtime_data import NightscoutClockConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock binary sensor entities."""
-    domain_data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: NightscoutClockCoordinator = domain_data["coordinator"]
+    coordinator: NightscoutClockCoordinator = entry.runtime_data.coordinator
 
     async_add_entities(
         [

@@ -9,12 +9,23 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import HomeAssistantError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.nsclock import CONFIG_SCHEMA
+from custom_components.nsclock.runtime_data import NightscoutClockRuntimeData
+
+
+def test_config_schema_logs_for_yaml_setup(caplog: Any) -> None:
+    config = {"nsclock": {}}
+    assert CONFIG_SCHEMA(config) == config
+    assert "does not support YAML setup" in caplog.text
+
 
 async def test_setup_entry_creates_entities(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
     mock_config_entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
-    assert mock_config_entry.state is __import__("homeassistant.config_entries", fromlist=["ConfigEntryState"]).ConfigEntryState.LOADED
+    assert isinstance(mock_config_entry.runtime_data, NightscoutClockRuntimeData)
+    assert mock_config_entry.runtime_data.coordinator is not None
+    assert mock_config_entry.state is ConfigEntryState.LOADED
     assert hass.states.get("select.brightness_mode_setting") is not None
     assert hass.states.get("number.brightness_level_setting") is not None
     assert hass.states.get("text.clock_name_setting") is not None
@@ -28,7 +39,24 @@ async def test_unload_entry(hass: Any, mock_config_entry: MockConfigEntry, mock_
     await hass.async_block_till_done()
     assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
     await hass.async_block_till_done()
-    assert mock_config_entry.state is __import__("homeassistant.config_entries", fromlist=["ConfigEntryState"]).ConfigEntryState.NOT_LOADED
+    assert mock_config_entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_apply_settings_service_rejects_unloaded_entry(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+
+    with pytest.raises(HomeAssistantError, match="configured NSClock"):
+        await hass.services.async_call(
+            "nsclock",
+            "apply_settings",
+            {"entity_id": "select.brightness_mode_setting"},
+            blocking=True,
+        )
 
 
 async def test_setup_fails_when_status_is_unavailable(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:

@@ -7,16 +7,14 @@ from typing import Any
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.entity import EntityCategory
 
-from .const import DOMAIN
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
+from .runtime_data import NightscoutClockConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock select entities."""
-    coordinator: NightscoutClockCoordinator = hass.data[DOMAIN][entry.entry_id][
-        "coordinator"
-    ]
+    coordinator = entry.runtime_data.coordinator
     async_add_entities(
         [
             NightscoutClockBrightnessModeSelect(coordinator, entry),

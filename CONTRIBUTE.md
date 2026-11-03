@@ -4,7 +4,7 @@
 
 ### 1. Prerequisites
 
-- Python 3.10+ or 3.11+ (the project uses Python 3.13 in the test environment)
+- Python 3.13 (same version used in CI)
 - Home Assistant 2026.2+ (the test environment runs HA 2026.2.3)
 - Git
 
@@ -26,17 +26,14 @@ source .venv/bin/activate
 
 ```bash
 pip install -r requirements_test.txt
-# Also install the integration in development mode
-pip install -e .
 ```
 
-### 5. Run the Test Suite
+### 5. Run Tests and Lint
 
 ```bash
 pytest -vv
+ruff check --isolated --select E4,E7,E9,F custom_components/nsclock tests
 ```
-
-All 28 tests should pass. If tests fail, check the test errors section below.
 
 ### 6. Code Style
 
@@ -80,15 +77,10 @@ If you need to expose a new field from `/api/status`:
 4. Add extra attributes in the `extra_state_attributes` property if needed.
 5. Add a test asserting the new state/attribute.
 
-### 10. CI / Pre-commit
+### 10. CI
 
-The project uses `pytest` for testing. No pre-commit hooks are configured yet, but you can add:
-
-- `ruff` for linting
-- `mypy` for type checking
-- `pytest` as the test runner
-
-Ensure `pytest -vv` passes before submitting a pull request.
+GitHub Actions runs the test suite, Ruff, Home Assistant's Hassfest
+validation, and HACS validation on pushes and pull requests.
 
 ## Project Structure
 
@@ -96,6 +88,7 @@ Ensure `pytest -vv` passes before submitting a pull request.
 nightscout-clock-ha-integration/
 ├── custom_components/nsclock/    # Home Assistant integration
 │   ├── __init__.py                # Entry point (setup/unload/reload)
+│   ├── runtime_data.py            # Typed config-entry runtime data
 │   ├── api.py                     # HTTP API client (session, cookie, 401 retry)
 │   ├── entity.py                  # Base entity class
 │   ├── coordinator.py             # Data update coordinator
@@ -120,5 +113,7 @@ nightscout-clock-ha-integration/
 ├── README.md                      # User documentation
 ├── CONTRIBUTE.md                  # These contribution guidelines
 ├── pytest.ini                     # Pytest configuration
+├── requirements_test.txt          # Test and lint dependencies
+├── .github/workflows/validate.yml # CI checks
 └── openapi.yaml                   # OpenAPI spec of the clock API
 ```

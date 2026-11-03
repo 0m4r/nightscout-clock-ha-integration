@@ -10,7 +10,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from . import api
-from .const import CONF_HOST, CONF_PASSWORD, DOMAIN
+from .const import CONF_HOST, CONF_PASSWORD
 
 
 class NightscoutClockConfigFlow(config_entries.ConfigFlow, domain="nsclock"):

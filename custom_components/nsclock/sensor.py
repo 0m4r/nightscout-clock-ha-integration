@@ -12,17 +12,16 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.helpers.entity import EntityCategory
 
-from .const import DOMAIN
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
+from .runtime_data import NightscoutClockConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock sensor entities."""
-    domain_data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: NightscoutClockCoordinator = domain_data["coordinator"]
+    coordinator: NightscoutClockCoordinator = entry.runtime_data.coordinator
 
     async_add_entities(
         [
@@ -326,4 +325,3 @@ class NightscoutClockAlarmUrgentLowThresholdSensor(NightscoutClockConfigValueSen
             icon="mdi:alert-octagon",
             entity_category=EntityCategory.DIAGNOSTIC,
         )
-

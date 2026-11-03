@@ -7,16 +7,16 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import EntityCategory
 
-from .const import DOMAIN
+from .api import NightscoutClockApiClient
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
+from .runtime_data import NightscoutClockConfigEntry
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock switch entities."""
-    domain_data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: NightscoutClockCoordinator = domain_data["coordinator"]
-    api = domain_data["api"]
+    coordinator = entry.runtime_data.coordinator
+    api = entry.runtime_data.api
 
     async_add_entities(
         [
@@ -44,7 +44,7 @@ class NightscoutClockDisplaySwitch(NightscoutClockEntity, SwitchEntity):
         self,
         coordinator: NightscoutClockCoordinator,
         config_entry: Any,
-        api,
+        api: NightscoutClockApiClient,
     ) -> None:
         super().__init__(
             coordinator,

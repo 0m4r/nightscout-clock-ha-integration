@@ -81,5 +81,6 @@ See [CONTRIBUTE.md](CONTRIBUTE.md) for development guidelines.
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements_test.txt
+ruff check --isolated --select E4,E7,E9,F custom_components/nsclock tests
 pytest -vv
 ```
