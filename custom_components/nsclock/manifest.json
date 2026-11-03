@@ -1,13 +1,16 @@
 {
   "domain": "nsclock",
   "name": "Nightscout Clock",
+  "categories": [
+    "health_wellbeing"
+  ],
   "codeowners": [
     "@0m4r"
   ],
   "config_flow": true,
   "documentation": "https://github.com/0m4r/nightscout-clock-ha-integration",
-  "iot_class": "local_polling",
   "integration_type": "device",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/0m4r/nightscout-clock-ha-integration/issues",
   "requirements": [],
   "version": "0.1.0-beta.1"
