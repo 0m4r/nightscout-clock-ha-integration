@@ -1,7 +1,10 @@
 {
   "config": {
     "step": {
-      "user": {"data": {"host": "Host or IP address", "password": "Web interface password"}},
+      "user": {
+        "description": "Early beta: this integration is still under development. Some features may be incomplete or may not work as expected.",
+        "data": {"host": "Host or IP address", "password": "Web interface password"}
+      },
       "reauth_confirm": {"data": {"password": "New web interface password"}}
     },
     "error": {

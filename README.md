@@ -1,5 +1,8 @@
 # NSClock Home Assistant Integration
 
+> **Early beta:** This integration is under active development. Features may be
+> incomplete or may not work as expected, and compatibility is not guaranteed.
+
 ## Installation
 
 ### HACS
