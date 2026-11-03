@@ -1,0 +1,8 @@
+DOMAIN = "nsclock"
+CONF_HOST = "host"
+CONF_PASSWORD = "password"
+CONF_POLLING_INTERVAL = "polling_interval"
+CONF_DEFAULT_MELODY = "default_melody"
+CONF_ENABLE_RESTART = "enable_restart"
+DEFAULT_POLLING_INTERVAL = 30
+DEFAULT_MELODY = "high:d=4,o=5,b=125:4e7,p,4e7"

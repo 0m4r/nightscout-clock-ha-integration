@@ -1,0 +1,8 @@
+{
+  "isConnected": true,
+  "hasInternet": true,
+  "isInAPMode": false,
+  "bgSource": "NIGHTSCOUT",
+  "bgSourceStatus": "connected",
+  "sgv": 118
+}

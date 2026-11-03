@@ -1,0 +1,17 @@
+{
+  "domain": "nsclock",
+  "name": "Nightscout Clock",
+  "codeowners": ["@0m4r"],
+  "config_flow": true,
+  "documentation": "https://github.com/0m4r/nightscout-clock",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.1.0",
+  "platforms": [
+    "sensor",
+    "binary_sensor",
+    "switch",
+    "button"
+  ]
+}

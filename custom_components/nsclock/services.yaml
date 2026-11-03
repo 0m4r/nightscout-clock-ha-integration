@@ -1,0 +1,16 @@
+# NSClock services
+play_alarm_melody:
+  description: Play a melody (RTTTL) on the NSClock buzzer.
+  fields:
+    entity_id:
+      description: The button entity to press.
+      example: "button.play_alarm_melody"
+    rtttl:
+      description: RTTTL melody string to play.
+      example: "high:d=4,o=5,b=125:4e7,p,4e7"
+restart:
+  description: Restart the NSClock device.
+  fields:
+    entity_id:
+      description: The button entity to press.
+      example: "button.restart"
