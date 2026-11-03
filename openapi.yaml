@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Nightscout Clock Device API
-  version: 1.0.0
+  version: 1.2.0
   description: |
     OpenAPI description of the HTTP API exposed by the clock firmware and consumed by
     the bundled web UI. The device serves this API over HTTP on port 80. Some routes
@@ -181,12 +181,6 @@ paths:
                 success: { value: { status: ok } }
                 saveError: { value: { status: Settings save error } }
                 parseError: { value: { status: json parsing error } }
-        '400':
-          description: A settings validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorStatus'
         '401':
           $ref: '#/components/responses/Unauthorized'
   /api/alarm:
@@ -228,6 +222,35 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ActionStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/face:
+    post:
+      tags: [Device control]
+      summary: Switch the currently displayed face
+      description: Switches faces temporarily without changing the configured default face, schedule, or cycling settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [face]
+              properties:
+                face:
+                  type: string
+                  description: ID of a face supported by the installed firmware.
+      responses:
+        '200':
+          description: Face switch accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FaceStatus' }
+        '400':
+          description: Missing or unknown face ID
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
         '401':
           $ref: '#/components/responses/Unauthorized'
   /api/displaypower:
@@ -361,7 +384,7 @@ components:
         hasPassword: { type: boolean }
     ClockStatus:
       type: object
-      required: [isConnected, hasInternet, isInAPMode, bgSource, bgSourceStatus, sgv]
+      required: [isConnected, hasInternet, isInAPMode, bgSource, bgSourceStatus, sgv, hasRecentData, faceId]
       properties:
         isConnected: { type: boolean }
         hasInternet: { type: boolean }
@@ -374,17 +397,28 @@ components:
         sgv:
           type: integer
           description: Latest blood glucose value in mg/dL, or 0 when no reading exists.
+        hasRecentData:
+          type: boolean
+          description: Whether the latest glucose reading is within the configured stale-data threshold.
+        faceId:
+          type: string
+          description: ID of the face currently displayed.
     ActionStatus:
       type: object
       required: [status]
       properties:
         status: { type: string }
         error: { type: string }
+    FaceStatus:
+      type: object
+      required: [status, face]
+      properties:
+        status: { type: string, enum: [ok] }
+        face: { type: string, description: ID of the face requested for display. }
     ErrorStatus:
       allOf:
         - $ref: '#/components/schemas/ActionStatus'
         - type: object
-          required: [error]
     Patient:
       type: object
       required: [patientId, firstName, lastName]
@@ -479,6 +513,7 @@ components:
         face_cycle_interval_seconds: { type: integer, enum: [10, 30, 60, 120, 180, 300] }
         face_schedule_enabled: { type: boolean }
         face_schedule: { type: array, maxItems: 8, items: { $ref: '#/components/schemas/FaceScheduleEntry' } }
+        surprise_mode: { type: boolean }
         tz_libc: { type: string }
         tz: { type: string }
         time_format: { type: string, enum: ['12', '24'] }
@@ -511,6 +546,7 @@ components:
         custom_hostname_enable: { type: boolean }
         custom_hostname: { type: string }
         clock_name: { type: string, maxLength: 32 }
+        low_battery_alert_enable: { type: boolean }
         custom_nodatatimer_enable: { type: boolean }
         custom_nodatatimer: { type: integer, minimum: 6, maximum: 60 }
         data_old_color: { type: string }

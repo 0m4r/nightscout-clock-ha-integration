@@ -50,3 +50,17 @@ report_glucose:
       name: Trend
       description: Optional numeric fallback trend value.
       example: 4
+set_face:
+  name: Set face
+  description: Temporarily switch the face displayed by an NSClock without changing its default face, schedule, or cycling settings.
+  fields:
+    entity_id:
+      name: Entity
+      description: An entity belonging to the NSClock to control.
+      required: true
+      example: "sensor.current_face"
+    face:
+      name: Face
+      description: Firmware face ID to display.
+      required: true
+      example: "big_text"

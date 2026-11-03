@@ -35,6 +35,8 @@ WRITABLE_CONFIG_OPTIONS: dict[str, tuple[type, Any]] = {
     "alarm_high_enabled": (bool, None),
     "alarm_low_enabled": (bool, None),
     "alarm_urgent_low_enabled": (bool, None),
+    "surprise_mode": (bool, None),
+    "low_battery_alert_enable": (bool, None),
     "alarm_high_value": (int, None),
     "alarm_low_value": (int, None),
     "alarm_urgent_low_value": (int, None),
@@ -134,6 +136,20 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         updated_data = dict(self.data or {})
         updated_data["status"] = status
         self.async_set_updated_data(updated_data)
+
+    async def async_set_face(self, face: str) -> None:
+        """Request a temporary display-face switch."""
+        try:
+            result = await self.client.set_face(face)
+        except ConfigEntryAuthFailed:
+            raise
+        except Exception as error:
+            raise HomeAssistantError(
+                f"Failed to switch the NSClock face: {error}"
+            ) from error
+
+        if not isinstance(result, dict) or result.get("status") != "ok":
+            raise HomeAssistantError("The NSClock rejected the face change")
 
     async def _async_apply_staged_settings(self) -> None:
         """Apply one snapshot of staged settings."""

@@ -143,6 +143,10 @@ class NightscoutClockApiClient:
         """Restart the clock."""
         return await self._request("POST", "/api/reset", {})
 
+    async def set_face(self, face: str) -> dict[str, Any]:
+        """Temporarily switch the displayed face."""
+        return await self._request("POST", "/api/face", {"face": face})
+
     async def get_config(self) -> dict[str, Any]:
         """Get current configuration.
 

@@ -23,6 +23,7 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
             NightscoutClockConnectedBinarySensor(coordinator, entry),
             NightscoutClockInternetBinarySensor(coordinator, entry),
             NightscoutClockAccessPointBinarySensor(coordinator, entry),
+            NightscoutClockRecentDataBinarySensor(coordinator, entry),
         ]
     )
 
@@ -93,3 +94,25 @@ class NightscoutClockAccessPointBinarySensor(NightscoutClockEntity, BinarySensor
     def is_on(self) -> bool:
         status = self.coordinator.data.get("status", {}) if self.coordinator.data else {}
         return bool(status.get("isInAPMode", False))
+
+
+class NightscoutClockRecentDataBinarySensor(NightscoutClockEntity, BinarySensorEntity):
+    """Whether the latest glucose reading is recent."""
+
+    def __init__(
+        self,
+        coordinator: NightscoutClockCoordinator,
+        config_entry: Any,
+    ) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="recent_glucose_data",
+            name="Recent Glucose Data",
+            icon="mdi:clock-check",
+        )
+
+    @property
+    def is_on(self) -> bool:
+        status = self.coordinator.data.get("status", {}) if self.coordinator.data else {}
+        return bool(status.get("hasRecentData", False))

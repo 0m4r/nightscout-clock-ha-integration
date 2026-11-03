@@ -24,6 +24,7 @@ from .const import (
     DOMAIN,
     SERVICE_APPLY_SETTINGS,
     SERVICE_REPORT_GLUCOSE,
+    SERVICE_SET_FACE,
 )
 from .runtime_data import (
     NightscoutClockConfigEntry,
@@ -129,6 +130,11 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
         coordinator = get_target_coordinator(call)
         await coordinator.async_report_glucose(glucose_entry)
 
+    async def async_set_face(call: ServiceCall) -> None:
+        """Temporarily switch the face displayed by the target clock."""
+        coordinator = get_target_coordinator(call)
+        await coordinator.async_set_face(call.data["face"])
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_APPLY_SETTINGS,
@@ -148,6 +154,17 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
                 ),
                 vol.Optional("direction"): str,
                 vol.Optional("trend"): _validate_integer,
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FACE,
+        async_set_face,
+        schema=vol.Schema(
+            {
+                vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+                vol.Required("face"): str,
             }
         ),
     )

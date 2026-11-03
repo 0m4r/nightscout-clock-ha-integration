@@ -31,6 +31,8 @@ async def test_setup_entry_creates_entities(hass: Any, mock_config_entry: MockCo
     assert hass.states.get("text.clock_name_setting") is not None
     assert hass.services.has_service("nsclock", "apply_settings")
     assert hass.services.has_service("nsclock", "report_glucose")
+    assert hass.services.has_service("nsclock", "set_face")
+    assert hass.states.get("binary_sensor.recent_glucose_data") is not None
 
 
 async def test_unload_entry(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
@@ -199,3 +201,20 @@ async def test_report_glucose_service_requires_timezone(
         )
 
     mock_api_client.report_glucose_entries.assert_not_awaited()
+
+
+async def test_set_face_service_uses_selected_clock(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "nsclock",
+        "set_face",
+        {"entity_id": "sensor.current_face", "face": "race_car"},
+        blocking=True,
+    )
+
+    mock_api_client.set_face.assert_awaited_once_with("race_car")

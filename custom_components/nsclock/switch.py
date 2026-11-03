@@ -21,17 +21,33 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
     async_add_entities(
         [
             NightscoutClockDisplaySwitch(coordinator, entry, api),
-            NightscoutClockAlarmEnabledSwitch(
+            NightscoutClockConfigSwitch(
                 coordinator, entry, "alarm_high_enabled", "High Alarm Enabled"
             ),
-            NightscoutClockAlarmEnabledSwitch(
+            NightscoutClockConfigSwitch(
                 coordinator, entry, "alarm_low_enabled", "Low Alarm Enabled"
             ),
-            NightscoutClockAlarmEnabledSwitch(
+            NightscoutClockConfigSwitch(
                 coordinator,
                 entry,
                 "alarm_urgent_low_enabled",
                 "Urgent Low Alarm Enabled",
+            ),
+            NightscoutClockConfigSwitch(
+                coordinator,
+                entry,
+                "surprise_mode",
+                "Surprise Mode",
+                object_id="surprise_mode_setting",
+                icon="mdi:party-popper",
+            ),
+            NightscoutClockConfigSwitch(
+                coordinator,
+                entry,
+                "low_battery_alert_enable",
+                "Low Battery Alert Enabled",
+                object_id="low_battery_alert_setting",
+                icon="mdi:battery-alert",
             ),
         ]
     )
@@ -67,8 +83,8 @@ class NightscoutClockDisplaySwitch(NightscoutClockEntity, SwitchEntity):
         await self._api.set_display_power("off")
 
 
-class NightscoutClockAlarmEnabledSwitch(NightscoutClockEntity, SwitchEntity):
-    """Staged alarm-enabled setting."""
+class NightscoutClockConfigSwitch(NightscoutClockEntity, SwitchEntity):
+    """Staged boolean configuration setting."""
 
     def __init__(
         self,
@@ -76,13 +92,15 @@ class NightscoutClockAlarmEnabledSwitch(NightscoutClockEntity, SwitchEntity):
         config_entry: Any,
         config_key: str,
         name: str,
+        object_id: str | None = None,
+        icon: str = "mdi:alarm",
     ) -> None:
         super().__init__(
             coordinator,
             config_entry,
-            object_id=config_key.removesuffix("_enabled") + "_setting",
+            object_id=object_id or config_key.removesuffix("_enabled") + "_setting",
             name=name,
-            icon="mdi:alarm",
+            icon=icon,
             entity_category=EntityCategory.CONFIG,
         )
         self._config_key = config_key
@@ -93,11 +111,11 @@ class NightscoutClockAlarmEnabledSwitch(NightscoutClockEntity, SwitchEntity):
         return bool(self.coordinator.config_value(self._config_key))
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Stage enabling the alarm."""
+        """Stage enabling the setting."""
         self.coordinator.stage_config_value(self._config_key, True)
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Stage disabling the alarm."""
+        """Stage disabling the setting."""
         self.coordinator.stage_config_value(self._config_key, False)
         self.async_write_ha_state()

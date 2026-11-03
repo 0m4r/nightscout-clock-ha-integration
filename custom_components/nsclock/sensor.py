@@ -29,6 +29,7 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
             NightscoutClockDataSourceSensor(coordinator, entry),
             NightscoutClockSourceStatusSensor(coordinator, entry),
             NightscoutClockFirmwareVersionSensor(coordinator, entry),
+            NightscoutClockCurrentFaceSensor(coordinator, entry),
             NightscoutClockBrightnessModeSensor(coordinator, entry),
             NightscoutClockBrightnessLevelSensor(coordinator, entry),
             NightscoutClockUnitsSensor(coordinator, entry),
@@ -144,6 +145,29 @@ class NightscoutClockFirmwareVersionSensor(NightscoutClockEntity, SensorEntity):
         if self.coordinator.data:
             return self.coordinator.data.get("firmware_version")
         return None
+
+
+class NightscoutClockCurrentFaceSensor(NightscoutClockEntity, SensorEntity):
+    """Currently displayed clock face sensor."""
+
+    def __init__(
+        self,
+        coordinator: NightscoutClockCoordinator,
+        config_entry: Any,
+    ) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="current_face",
+            name="Current Face",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            icon="mdi:clock-digital",
+        )
+
+    @property
+    def native_value(self) -> Any:
+        status = self.coordinator.data.get("status", {}) if self.coordinator.data else {}
+        return status.get("faceId")
 
 
 class NightscoutClockConfigValueSensor(NightscoutClockEntity, SensorEntity):

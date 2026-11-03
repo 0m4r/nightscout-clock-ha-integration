@@ -45,3 +45,10 @@ async def test_firmware_version_sensor(hass: Any, mock_config_entry: MockConfigE
     state = hass.states.get("sensor.firmware_version")
     assert state is not None
     assert state.state == "1.2.3"
+
+
+async def test_current_face_sensor(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
+    await async_setup(hass, mock_config_entry, mock_api_client)
+    state = hass.states.get("sensor.current_face")
+    assert state is not None
+    assert state.state == "big_text"

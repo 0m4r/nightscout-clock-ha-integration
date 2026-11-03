@@ -48,6 +48,8 @@ def mock_api_client() -> Generator[Any, None, None]:
             "bgSource": "NIGHTSCOUT",
             "bgSourceStatus": "connected",
             "sgv": 118,
+            "hasRecentData": True,
+            "faceId": "big_text",
         }
 
         client.get_status = AsyncMock(return_value=status_data)
@@ -60,6 +62,7 @@ def mock_api_client() -> Generator[Any, None, None]:
         client.play_alarm = AsyncMock(return_value={"status": "ok"})
         client.report_glucose_entries = AsyncMock(return_value={"status": "ok"})
         client.restart = AsyncMock(return_value={"status": "ok"})
+        client.set_face = AsyncMock(return_value={"status": "ok", "face": "big_text"})
         client.get_config = AsyncMock(
             return_value={
                 "brightness_mode": "manual",
@@ -69,6 +72,8 @@ def mock_api_client() -> Generator[Any, None, None]:
                 "alarm_high_enabled": True,
                 "alarm_low_enabled": True,
                 "alarm_urgent_low_enabled": False,
+                "surprise_mode": True,
+                "low_battery_alert_enable": False,
                 "alarm_high_value": 250,
                 "alarm_low_value": 70,
                 "alarm_urgent_low_value": 55,
