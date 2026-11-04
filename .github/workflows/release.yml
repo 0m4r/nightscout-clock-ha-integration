@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "New release version without the leading v"
+        description: "New release version (with or without the leading v)"
         required: true
         type: string
 
@@ -88,6 +88,8 @@ jobs:
             exit 1
           fi
 
+          RELEASE_VERSION="${RELEASE_VERSION#v}"
+
           if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
             echo "::error::Version must be a semantic version such as 1.2.3 or 1.2.3-beta.1."
             exit 1
@@ -113,13 +115,14 @@ jobs:
           fi
 
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update version, changelog, and publish release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
           SHA: ${{ github.sha }}
-          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
         run: |
           set -euo pipefail
 

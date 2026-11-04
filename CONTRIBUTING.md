@@ -49,14 +49,15 @@ minor version. Use semantic versions, including a prerelease suffix when
 appropriate (for example, `0.2.0-beta.1`).
 
 Releases are not triggered by pushes or merges to `main`. To publish one, run
-the **Release** workflow manually from `main` and enter the new version without
-the leading `v`. The workflow runs tests, lint, Hassfest, and HACS checks,
-updates `custom_components/nsclock/manifest.json`, prepends generated notes to
-`CHANGELOG.md`, then commits those files and pushes the matching `v<version>`
-tag before creating the GitHub Release. Release notes are generated from merged
-pull requests and categorized by labels using `.github/release.yml`; apply the
-`enhancement` or `bug` label when appropriate, or `skip-changelog` to exclude a
-pull request. Do not update the manifest version manually for a release.
+the **Release** workflow manually from `main` and enter the new version with or
+without the leading `v`. The workflow normalizes the version, runs tests, lint,
+Hassfest, and HACS checks, updates `custom_components/nsclock/manifest.json`,
+prepends generated notes to `CHANGELOG.md`, then commits those files and pushes
+the matching `v<version>` tag before creating the GitHub Release. Release notes
+are generated from merged pull requests and categorized by labels using
+`.github/release.yml`; apply the `enhancement` or `bug` label when appropriate,
+or `skip-changelog` to exclude a pull request. Do not update the manifest
+version manually for a release.
 
 ### 7. Code Style
 
