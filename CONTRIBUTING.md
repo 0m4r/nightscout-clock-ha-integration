@@ -35,7 +35,30 @@ pytest -vv
 ruff check --isolated --select E4,E7,E9,F custom_components/nsclock tests
 ```
 
-### 6. Code Style
+### 6. Commit Messages and Versioning
+
+Use Conventional Commit prefixes in commit messages and pull request titles:
+
+- `fix:` for bug fixes (patch release).
+- `feat:` for user-facing features (minor release).
+- `docs:`, `test:`, `chore:`, and `refactor:` for other changes.
+- Add `!` after the type or a `BREAKING CHANGE:` footer for breaking changes.
+
+While the integration is below `1.0.0`, breaking changes are released as a
+minor version. Use semantic versions, including a prerelease suffix when
+appropriate (for example, `0.2.0-beta.1`).
+
+Releases are not triggered by pushes or merges to `main`. To publish one, run
+the **Release** workflow manually from `main` and enter the new version without
+the leading `v`. The workflow runs tests, lint, Hassfest, and HACS checks,
+updates `custom_components/nsclock/manifest.json`, prepends generated notes to
+`CHANGELOG.md`, then commits those files and pushes the matching `v<version>`
+tag before creating the GitHub Release. Release notes are generated from merged
+pull requests and categorized by labels using `.github/release.yml`; apply the
+`enhancement` or `bug` label when appropriate, or `skip-changelog` to exclude a
+pull request. Do not update the manifest version manually for a release.
+
+### 7. Code Style
 
 - Follow the existing code style in the repository (PEP 8 with Home Assistant conventions).
 - Use type annotations (`from __future__ import annotations`, `str | None` patterns).
@@ -44,7 +67,7 @@ ruff check --isolated --select E4,E7,E9,F custom_components/nsclock tests
 - Use `CoordinatorEntity` for all entities with `_attr_has_entity_name = False`.
 - Capture class-level `_attr_*` attributes **before** calling `super().__init__()` in `__init__`, because HA's `Entity.__init__` resets them to `None`.
 
-### 7. Adding a New Entity
+### 8. Adding a New Entity
 
 If you want to add a new entity:
 
@@ -55,7 +78,7 @@ If you want to add a new entity:
 5. Register the platform in `PLATFORMS` list in `__init__.py` if it's a new platform type.
 6. Add a test in `tests/` following the existing patterns.
 
-### 8. Adding a New API Endpoint
+### 9. Adding a New API Endpoint
 
 If the clock firmware adds a new endpoint:
 
@@ -67,7 +90,7 @@ If the clock firmware adds a new endpoint:
 2. Add a test mock in `tests/conftest.py` under `mock_api_client`.
 3. Add a test in the appropriate `tests/test_*.py` file.
 
-### 9. Adding a New Entity Sensor/Attribute
+### 10. Adding a New Entity Sensor/Attribute
 
 If you need to expose a new field from `/api/status`:
 
@@ -77,7 +100,7 @@ If you need to expose a new field from `/api/status`:
 4. Add extra attributes in the `extra_state_attributes` property if needed.
 5. Add a test asserting the new state/attribute.
 
-### 10. CI
+### 11. CI
 
 GitHub Actions runs the test suite, Ruff, Home Assistant's Hassfest
 validation, and HACS validation on pushes and pull requests.

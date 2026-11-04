@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version without the leading v; must match manifest.json"
+        description: "New release version without the leading v"
         required: true
         type: string
 
@@ -74,7 +74,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Validate release version and tag
+      - name: Validate release version
         id: release
         env:
           RELEASE_VERSION: ${{ inputs.version }}
@@ -88,14 +88,14 @@ jobs:
             exit 1
           fi
 
-          manifest_version="$(jq -er '.version | select(type == "string" and length > 0)' custom_components/nsclock/manifest.json)"
-          if [[ "$RELEASE_VERSION" != "$manifest_version" ]]; then
-            echo "::error::Requested version $RELEASE_VERSION does not match manifest version $manifest_version."
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version must be a semantic version such as 1.2.3 or 1.2.3-beta.1."
             exit 1
           fi
 
-          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Version must be a semantic version such as 1.2.3 or 1.2.3-beta.1."
+          manifest_version="$(jq -er '.version | select(type == "string" and length > 0)' custom_components/nsclock/manifest.json)"
+          if [[ "$RELEASE_VERSION" == "$manifest_version" ]]; then
+            echo "::error::Version $RELEASE_VERSION is already set in manifest.json. Choose the next release version."
             exit 1
           fi
 
@@ -114,22 +114,62 @@ jobs:
 
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub release
+      - name: Update version, changelog, and publish release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
           SHA: ${{ github.sha }}
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
+          set -euo pipefail
+
+          notes_file="$RUNNER_TEMP/release-notes.md"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f "tag_name=$TAG" \
+            -f "target_commitish=$SHA" \
+            --jq .body > "$notes_file"
+
+          if [[ ! -s "$notes_file" ]]; then
+            echo "::error::GitHub generated empty release notes."
+            exit 1
+          fi
+
+          jq --arg version "$RELEASE_VERSION" '.version = $version' \
+            custom_components/nsclock/manifest.json > "$RUNNER_TEMP/manifest.json"
+          mv "$RUNNER_TEMP/manifest.json" custom_components/nsclock/manifest.json
+
+          changelog_file="$RUNNER_TEMP/CHANGELOG.md"
+          {
+            printf '# Changelog\n\n'
+            printf '## [%s] - %s\n\n' "$RELEASE_VERSION" "$(date -u +%Y-%m-%d)"
+            cat "$notes_file"
+            printf '\n'
+            if [[ -f CHANGELOG.md ]]; then
+              sed '1{/^# Changelog$/d;}' CHANGELOG.md | sed '/./,$!d'
+            fi
+          } > "$changelog_file"
+          mv "$changelog_file" CHANGELOG.md
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add custom_components/nsclock/manifest.json CHANGELOG.md
+          git commit -m "chore(release): $TAG"
+
+          release_sha="$(git rev-parse HEAD)"
+          git tag -a "$TAG" "$release_sha" -m "$TAG"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/$TAG"
+
           if [[ "$RELEASE_VERSION" == *-* ]]; then
             gh release create "$TAG" \
-              --target "$SHA" \
+              --target "$release_sha" \
               --title "$TAG" \
-              --generate-notes \
+              --notes-file "$notes_file" \
+              --verify-tag \
               --prerelease
           else
             gh release create "$TAG" \
-              --target "$SHA" \
+              --target "$release_sha" \
               --title "$TAG" \
-              --generate-notes
+              --notes-file "$notes_file" \
+              --verify-tag
           fi
