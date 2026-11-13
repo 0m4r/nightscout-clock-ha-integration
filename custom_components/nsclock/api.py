@@ -155,19 +155,19 @@ class NightscoutClockApiClient:
 
     async def next_face(self) -> dict[str, Any]:
         """Switch to the next active clock face."""
-        return await self._request("POST", "/api/face/next", {})
+        return await self._request("POST", "/api/face/next")
 
     async def previous_face(self) -> dict[str, Any]:
         """Switch to the previous active clock face."""
-        return await self._request("POST", "/api/face/prev", {})
+        return await self._request("POST", "/api/face/prev")
 
     async def next_brightness(self) -> dict[str, Any]:
         """Advance one step in the temporary brightness cycle."""
-        return await self._request("POST", "/api/brightness/next", {})
+        return await self._request("POST", "/api/brightness/next")
 
     async def previous_brightness(self) -> dict[str, Any]:
         """Go back one step in the temporary brightness cycle."""
-        return await self._request("POST", "/api/brightness/prev", {})
+        return await self._request("POST", "/api/brightness/prev")
 
     async def get_brightness(self) -> dict[str, int]:
         """Get the current temporary brightness value."""

@@ -62,10 +62,10 @@ async def test_new_firmware_and_display_endpoints() -> None:
 
     calls = [
         (client.get_faces, "GET", "/api/faces", None),
-        (client.next_face, "POST", "/api/face/next", {}),
-        (client.previous_face, "POST", "/api/face/prev", {}),
-        (client.next_brightness, "POST", "/api/brightness/next", {}),
-        (client.previous_brightness, "POST", "/api/brightness/prev", {}),
+        (client.next_face, "POST", "/api/face/next", None),
+        (client.previous_face, "POST", "/api/face/prev", None),
+        (client.next_brightness, "POST", "/api/brightness/next", None),
+        (client.previous_brightness, "POST", "/api/brightness/prev", None),
         (client.get_brightness, "GET", "/api/brightness", None),
         (client.scan_wifi, "GET", "/api/wifi/scan", None),
     ]
