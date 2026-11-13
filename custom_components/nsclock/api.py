@@ -17,10 +17,6 @@ class NightscoutClockApiError(Exception):
     """Base error for NSClock API failures."""
 
 
-class NightscoutClockApiUnauthorized(NightscoutClockApiError):
-    """Raised when authentication is required or has expired."""
-
-
 class NightscoutClockApiClient:
     """Client for the NSClock HTTP API.
 
@@ -133,7 +129,9 @@ class NightscoutClockApiClient:
 
     async def login(self, password: str) -> dict[str, Any]:
         """Login with password and update session cookies."""
-        return await self._request("POST", "/api/auth/login", {"password": password})
+        return await self._request(
+            "POST", "/api/auth/login", {"password": password}, retry_auth=False
+        )
 
     async def set_display_power(self, power: Literal["on", "off"]) -> dict[str, Any]:
         """Set display power."""

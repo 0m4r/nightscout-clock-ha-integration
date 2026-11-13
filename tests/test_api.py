@@ -40,6 +40,18 @@ async def test_set_face_uses_face_endpoint() -> None:
     request.assert_awaited_once_with("POST", "/api/face", {"face": "big_text"})
 
 
+async def test_login_disables_auth_retry() -> None:
+    client = NightscoutClockApiClient("nsclock.local", "password")
+    with patch.object(
+        client, "_request", new_callable=AsyncMock, return_value={"status": "invalid"}
+    ) as request:
+        await client.login("password")
+
+    request.assert_awaited_once_with(
+        "POST", "/api/auth/login", {"password": "password"}, retry_auth=False
+    )
+
+
 async def test_new_firmware_and_display_endpoints() -> None:
     client = NightscoutClockApiClient("nsclock.local")
     with patch.object(

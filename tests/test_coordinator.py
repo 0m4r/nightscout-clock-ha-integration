@@ -3,10 +3,11 @@
 from typing import Any
 from unittest.mock import AsyncMock
 
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.nsclock.api import NightscoutClockApiClient, NightscoutClockApiUnauthorized
+from custom_components.nsclock.api import NightscoutClockApiClient
 from custom_components.nsclock.coordinator import NightscoutClockCoordinator
 
 TEST_HOST = "192.168.1.50"
@@ -72,12 +73,14 @@ async def test_connection_error_raises_update_failed(hass: Any, mock_config_entr
         raise AssertionError("Expected UpdateFailed")
 
 
-async def test_auth_retry(hass: Any, authenticated_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
-    mock_api_client.get_status.side_effect = [
-        NightscoutClockApiUnauthorized(),
-        mock_api_client.get_status.return_value,
-    ]
+async def test_auth_failure_propagates_for_reauthentication(
+    hass: Any, authenticated_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_api_client.get_status.side_effect = ConfigEntryAuthFailed("bad credentials")
     coordinator = await make_coordinator(hass, authenticated_config_entry, mock_api_client)
-    data = await coordinator._async_update_data()
-    mock_api_client.login.assert_awaited_once_with("test-password")
-    assert data["status"]["sgv"] == 118
+    try:
+        await coordinator._async_update_data()
+    except ConfigEntryAuthFailed:
+        pass
+    else:
+        raise AssertionError("Expected ConfigEntryAuthFailed")

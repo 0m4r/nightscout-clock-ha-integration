@@ -15,9 +15,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api import (
     NightscoutClockApiClient,
     NightscoutClockApiError,
-    NightscoutClockApiUnauthorized,
 )
-from .const import CONF_PASSWORD, DEFAULT_POLLING_INTERVAL, DOMAIN
+from .const import DEFAULT_POLLING_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -205,14 +204,8 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         try:
             return await self._fetch_data()
-        except NightscoutClockApiUnauthorized:
-            # Auth expired: log in once, then retry the original request.
-            password = self.config_entry.data.get(CONF_PASSWORD)
-            if password:
-                _LOGGER.debug("Auth expired, logging in and retrying")
-                await self.client.login(password)
-                return await self._fetch_data()
-            raise ConfigEntryAuthFailed("Authentication required but no password configured")
+        except ConfigEntryAuthFailed:
+            raise
         except Exception as error:
             raise UpdateFailed(f"Error communicating with NSClock: {error}") from error
 
