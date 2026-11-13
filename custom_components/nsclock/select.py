@@ -17,6 +17,7 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
     coordinator = entry.runtime_data.coordinator
     async_add_entities(
         [
+            NightscoutClockFaceSelect(coordinator, entry),
             NightscoutClockBrightnessModeSelect(coordinator, entry),
             NightscoutClockTimeFormatSelect(coordinator, entry),
         ]
@@ -57,6 +58,48 @@ class NightscoutClockConfigSelect(NightscoutClockEntity, SelectEntity):
         """Stage a supported option for the next apply service call."""
         self.coordinator.stage_config_value(self._config_key, option)
         self.async_write_ha_state()
+
+
+class NightscoutClockFaceSelect(NightscoutClockEntity, SelectEntity):
+    """Select an active clock face to display.
+
+    The options come from the clock's ``/api/faces`` endpoint, so the list
+    reflects the faces activated on the device. Selecting a face temporarily
+    switches to it without changing the default face, schedule, or cycling.
+    """
+
+    def __init__(
+        self,
+        coordinator: NightscoutClockCoordinator,
+        config_entry: Any,
+    ) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="face",
+            name="Face",
+            icon="mdi:view-dashboard",
+        )
+
+    @property
+    def options(self) -> list[str]:
+        """Return the active faces in navigation order."""
+        faces = (
+            self.coordinator.data.get("faces", [])
+            if self.coordinator.data
+            else []
+        )
+        return [str(face.get("id", "")) for face in faces if face.get("id")]
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the id of the face currently shown on the clock."""
+        status = self.coordinator.data.get("status", {}) if self.coordinator.data else {}
+        return status.get("faceId")
+
+    async def async_select_option(self, option: str) -> None:
+        """Switch to the selected face and refresh face state."""
+        await self.coordinator.async_set_face(option)
 
 
 class NightscoutClockBrightnessModeSelect(NightscoutClockConfigSelect):

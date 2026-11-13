@@ -61,6 +61,12 @@ def mock_api_client() -> Generator[Any, None, None]:
         client.report_glucose_entries = AsyncMock(return_value={"status": "ok"})
         client.restart = AsyncMock(return_value={"status": "ok"})
         client.set_face = AsyncMock(return_value={"status": "ok", "face": "big_text"})
+        client.get_faces = AsyncMock(
+            return_value=[
+                {"id": "big_text", "name": "Big Text"},
+                {"id": "unicorn", "name": "Unicorn"},
+            ]
+        )
         client.next_face = AsyncMock(return_value={"status": "ok"})
         client.previous_face = AsyncMock(return_value={"status": "ok"})
         client.next_brightness = AsyncMock(return_value={"status": "ok"})

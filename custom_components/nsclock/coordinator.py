@@ -26,6 +26,10 @@ CONFIG_REFRESH_INTERVAL = timedelta(minutes=5)
 RESTART_POLL_INTERVAL = 2
 RESTART_TIMEOUT = 60
 
+# Refresh the active face list no more often than every 15 minutes. The face
+# navigation order is semi-static; polling it every update would hammer the clock.
+FACES_REFRESH_INTERVAL = timedelta(minutes=15)
+
 WRITABLE_CONFIG_OPTIONS: dict[str, tuple[type, Any]] = {
     "brightness_mode": (str, {"auto_linear", "auto_dimmed", "manual"}),
     "brightness_level": (int, (1, 101)),
@@ -64,6 +68,7 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._last_config_fetch: float | None = None
         self._config_cache: dict[str, Any] | None = None
         self._pending_config: dict[str, Any] = {}
+        self._last_faces_fetch: float | None = None
         self._apply_lock = asyncio.Lock()
 
     @property
@@ -253,5 +258,18 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if self._config_cache is not None:
             data["config"] = self._config_cache
+
+        if (
+            self._last_faces_fetch is None
+            or (now - self._last_faces_fetch) >= FACES_REFRESH_INTERVAL.total_seconds()
+        ):
+            try:
+                faces = await self.client.get_faces()
+                if isinstance(faces, list):
+                    data["faces"] = faces
+                self._last_faces_fetch = now
+            except NightscoutClockApiError as error:
+                # Older firmware may not expose /api/faces or face control.
+                _LOGGER.debug("Face list is unavailable: %s", error)
 
         return data

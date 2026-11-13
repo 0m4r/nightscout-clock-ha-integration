@@ -75,6 +75,23 @@ data:
 Applying settings saves the full clock configuration to preserve fields that
 Home Assistant does not expose, restarts the clock, and waits for it to return.
 
+## Faces
+
+The clock exposes its active faces via `api/faces` (in the same order used by
+next/previous navigation). Home Assistant lists them in the **Face** select
+(`select.nsclock_face`). Choosing a face temporarily switches the clock to it
+without changing the default face, schedule, or cycling. The **Next face** and
+**Previous face** buttons walk through the active faces in navigation order.
+
+The current face is shown by the **NSClock Current Face** sensor (`sensor.nsclock_current_face`).
+
+```yaml
+action: nsclock.set_face
+data:
+  entity_id: sensor.nsclock_current_face
+  face: unicorn
+```
+
 ## Reporting glucose to an API-source clock
 
 The `nsclock.report_glucose` service can send one glucose reading to a clock
