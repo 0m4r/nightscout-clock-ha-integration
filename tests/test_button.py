@@ -46,3 +46,4 @@ async def test_face_and_brightness_navigation_buttons(
     mock_api_client.previous_face.assert_awaited_once()
     mock_api_client.next_brightness.assert_awaited_once()
     mock_api_client.previous_brightness.assert_awaited_once()
+    assert mock_api_client.get_status.await_count >= 2

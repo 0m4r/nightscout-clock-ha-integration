@@ -218,3 +218,4 @@ async def test_set_face_service_uses_selected_clock(
     )
 
     mock_api_client.set_face.assert_awaited_once_with("race_car")
+    assert mock_api_client.get_status.await_count == 2

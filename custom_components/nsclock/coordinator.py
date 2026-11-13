@@ -151,6 +151,8 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not isinstance(result, dict) or result.get("status") != "ok":
             raise HomeAssistantError("The NSClock rejected the face change")
 
+        await self.async_request_refresh()
+
     async def _async_apply_staged_settings(self) -> None:
         """Apply one snapshot of staged settings."""
         staged_config = self._pending_config.copy()

@@ -95,6 +95,7 @@ class NightscoutClockFaceNavigationButton(NightscoutClockEntity, ButtonEntity):
             await self._api.next_face()
         else:
             await self._api.previous_face()
+        await self.coordinator.async_request_refresh()
 
 
 class NightscoutClockBrightnessNavigationButton(NightscoutClockEntity, ButtonEntity):
