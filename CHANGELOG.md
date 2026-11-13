@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.0-beta.5] - 2026-11-13
+
+<!-- Release notes generated using configuration in .github/release.yml at 59ab3457fc9dae2de8b124502fc821e77659951e -->
+
+
+
+**Full Changelog**: https://github.com/0m4r/nightscout-clock-ha-integration/compare/v0.1.0-beta.4...v0.1.0-beta.5
+
 ## [0.1.0-beta.4] - 2026-11-13
 
 <!-- Release notes generated using configuration in .github/release.yml at 101caf20cb262e76ec108f1a1db62365e0d6e338 -->
