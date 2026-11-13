@@ -17,9 +17,6 @@ TEST_PASSWORD = "test-password"
 TEST_UNIQUE_ID = "nsclock-test-device"
 
 
-TEST_UNIQUE_ID = "nsclock-test-device"
-
-
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> Generator[None, None, None]:
     yield
@@ -40,7 +37,7 @@ def mock_api_client() -> Generator[Any, None, None]:
     """Mock the NSClock API client so no real HTTP requests are made."""
     with patch.object(nsclock_api, "NightscoutClockApiClient") as mock_client_class:
         client = mock_client_class.return_value
-        
+
         status_data = {
             "isConnected": True,
             "hasInternet": True,

@@ -7,7 +7,6 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.entity import EntityCategory
 
-from .api import NightscoutClockApiClient
 from .coordinator import NightscoutClockCoordinator
 from .entity import NightscoutClockEntity
 from .runtime_data import NightscoutClockConfigEntry
@@ -16,7 +15,6 @@ from .runtime_data import NightscoutClockConfigEntry
 async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_entities) -> None:
     """Set up NSClock switch entities."""
     coordinator = entry.runtime_data.coordinator
-    api = entry.runtime_data.api
 
     async_add_entities(
         [
