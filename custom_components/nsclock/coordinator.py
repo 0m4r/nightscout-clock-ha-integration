@@ -60,6 +60,7 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.config_entry = config_entry
         self.client = client
         self._last_version_fetch: float | None = None
+        self._last_revision_fetch: float | None = None
         self._last_config_fetch: float | None = None
         self._config_cache: dict[str, Any] | None = None
         self._pending_config: dict[str, Any] = {}
@@ -224,8 +225,19 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ):
             version = await self.client.get_version()
             data["firmware_version"] = version
-            data["firmware_revision"] = await self.client.get_revision()
             self._last_version_fetch = now
+
+        if (
+            self._last_revision_fetch is None
+            or (now - self._last_revision_fetch)
+            >= VERSION_REFRESH_INTERVAL.total_seconds()
+        ):
+            try:
+                data["firmware_revision"] = await self.client.get_revision()
+            except NightscoutClockApiError as error:
+                # Older firmware may not expose /revision.txt.
+                _LOGGER.debug("Firmware revision is unavailable: %s", error)
+            self._last_revision_fetch = now
 
         if (
             self._last_config_fetch is None

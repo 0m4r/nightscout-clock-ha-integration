@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.nsclock.api import NightscoutClockApiClient
+from custom_components.nsclock.api import NightscoutClockApiError
 from custom_components.nsclock.coordinator import NightscoutClockCoordinator
 
 TEST_HOST = "192.168.1.50"
@@ -53,6 +54,18 @@ async def test_cached_firmware_version_remains_available_between_refreshes(
     assert first_data["firmware_version"] == "1.2.3"
     assert second_data["firmware_version"] == "1.2.3"
     assert mock_api_client.get_version.await_count == 1
+
+
+async def test_missing_revision_endpoint_does_not_fail_refresh(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_api_client.get_revision.side_effect = NightscoutClockApiError("not found")
+    coordinator = await make_coordinator(hass, mock_config_entry, mock_api_client)
+
+    data = await coordinator._async_update_data()
+
+    assert data["firmware_version"] == "1.2.3"
+    assert "firmware_revision" not in data
 
 
 async def test_zero_glucose_maps_to_none(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
