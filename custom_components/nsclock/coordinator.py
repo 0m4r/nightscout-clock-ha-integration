@@ -271,5 +271,6 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except NightscoutClockApiError as error:
                 # Older firmware may not expose /api/faces or face control.
                 _LOGGER.debug("Face list is unavailable: %s", error)
+                self._last_faces_fetch = now
 
         return data

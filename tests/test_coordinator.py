@@ -68,6 +68,18 @@ async def test_missing_revision_endpoint_does_not_fail_refresh(
     assert "firmware_revision" not in data
 
 
+async def test_unavailable_face_endpoint_uses_retry_interval(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    mock_api_client.get_faces.side_effect = NightscoutClockApiError("not found")
+    coordinator = await make_coordinator(hass, mock_config_entry, mock_api_client)
+
+    await coordinator._async_update_data()
+    await coordinator._async_update_data()
+
+    mock_api_client.get_faces.assert_awaited_once()
+
+
 async def test_zero_glucose_maps_to_none(hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any) -> None:
     mock_api_client.get_status.return_value["sgv"] = 0
     coordinator = await make_coordinator(hass, mock_config_entry, mock_api_client)

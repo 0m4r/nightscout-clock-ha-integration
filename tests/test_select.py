@@ -15,7 +15,7 @@ async def test_face_select_options(hass: Any, mock_config_entry: MockConfigEntry
     await async_setup(hass, mock_config_entry, mock_api_client)
     state = hass.states.get("select.face")
     assert state is not None
-    assert state.attributes["options"] == ["big_text", "unicorn"]
+    assert state.attributes["options"] == ["Big Text", "Unicorn"]
 
 
 async def test_face_select_current_option(
@@ -23,7 +23,7 @@ async def test_face_select_current_option(
 ) -> None:
     await async_setup(hass, mock_config_entry, mock_api_client)
     state = hass.states.get("select.face")
-    assert state.state == "big_text"
+    assert state.state == "Big Text"
 
 
 async def test_face_select_switches_face(
@@ -33,7 +33,7 @@ async def test_face_select_switches_face(
     await hass.services.async_call(
         "select",
         "select_option",
-        {"entity_id": "select.face", "option": "unicorn"},
+        {"entity_id": "select.face", "option": "Unicorn"},
         blocking=True,
     )
     mock_api_client.set_face.assert_awaited_once_with("unicorn")

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
 
 from .coordinator import NightscoutClockCoordinator
@@ -81,25 +82,59 @@ class NightscoutClockFaceSelect(NightscoutClockEntity, SelectEntity):
             icon="mdi:view-dashboard",
         )
 
-    @property
-    def options(self) -> list[str]:
-        """Return the active faces in navigation order."""
+    def _face_options(self) -> list[tuple[str, str]]:
+        """Return display names and IDs for the active faces."""
         faces = (
             self.coordinator.data.get("faces", [])
             if self.coordinator.data
             else []
         )
-        return [str(face.get("id", "")) for face in faces if face.get("id")]
+        labels: list[tuple[str, str]] = []
+        used_labels: set[str] = set()
+        for face in faces:
+            if not isinstance(face, dict) or not face.get("id"):
+                continue
+            face_id = str(face["id"])
+            base_label = str(face.get("name") or face_id)
+            label = base_label
+            if label in used_labels:
+                label = f"{base_label} ({face_id})"
+                suffix = 2
+                while label in used_labels:
+                    label = f"{base_label} ({face_id}, {suffix})"
+                    suffix += 1
+            used_labels.add(label)
+            labels.append((label, face_id))
+        return labels
+
+    @property
+    def options(self) -> list[str]:
+        """Return active face names in navigation order."""
+        return [label for label, _ in self._face_options()]
 
     @property
     def current_option(self) -> str | None:
-        """Return the id of the face currently shown on the clock."""
+        """Return the name of the face currently shown on the clock."""
         status = self.coordinator.data.get("status", {}) if self.coordinator.data else {}
-        return status.get("faceId")
+        current_face_id = status.get("faceId")
+        return next(
+            (
+                label
+                for label, face_id in self._face_options()
+                if face_id == current_face_id
+            ),
+            None,
+        )
 
     async def async_select_option(self, option: str) -> None:
         """Switch to the selected face and refresh face state."""
-        await self.coordinator.async_set_face(option)
+        face_id = next(
+            (face_id for label, face_id in self._face_options() if label == option),
+            None,
+        )
+        if face_id is None:
+            raise HomeAssistantError("The selected face is no longer active")
+        await self.coordinator.async_set_face(face_id)
 
 
 class NightscoutClockBrightnessModeSelect(NightscoutClockConfigSelect):
