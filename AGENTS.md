@@ -10,6 +10,11 @@
 - Follow the existing async API-client, coordinator, config-entry, and entity
   patterns. Prefer extending existing helpers and platform modules over
   introducing parallel abstractions.
+- Do not infer an entity's state from an unrelated status field. If firmware
+  exposes a control action without reporting its state, model it as a button.
+- API login requests must not retry authentication recursively. Propagate
+  `ConfigEntryAuthFailed` through the coordinator so Home Assistant can start
+  the config-entry reauthentication flow.
 
 ## Changes and documentation
 

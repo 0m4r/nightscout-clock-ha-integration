@@ -42,25 +42,29 @@ Devices & services**.
 
 ### Configuration
 
-After adding the integration:
+The setup flow asks for the clock's IP address or hostname (for example,
+`192.168.1.50` or `nsclock.local`) and, if enabled on the clock, its web
+authentication password. Polling is currently fixed at 30 seconds, and the
+alarm button uses the default melody shown below; neither is configurable in
+the setup flow.
 
-1.  Enter the clock's IP address or hostname (e.g., `192.168.1.50` or `nsclock.local`).
-2.  If your clock has web authentication enabled, enter the password.
-3.  Configure optional settings:
-    - **Polling interval**: How often Home Assistant polls the clock (default: 30 seconds, range 10–300).
-    - **Default melody**: RTTTL string for the "Play Alarm Melody" button (default: `high:d=4,o=5,b=125:4e7,p,4e7`).
-    - **Enable restart button**: Toggle to show a restart button (disabled by default).
+The default melody is `high:d=4,o=5,b=125:4e7,p,4e7`.
 
 Use the **Display On** and **Display Off** buttons to control the screen. The
 firmware does not report its current display power state, so these are action
 buttons rather than a stateful switch.
 
+Automations using `switch.display` will need to use `button.display_on` or
+`button.display_off`; the firmware does not report display power state, so a
+stateful switch would be inaccurate.
+
 ## Device settings
 
-Brightness mode and level, time format, clock name, alarm enable switches, and
-alarm thresholds are editable in Home Assistant. Changes are staged locally;
-they are not sent to the clock until `nsclock.apply_settings` is called. Target
-an entity from the clock being configured:
+Brightness mode and level, time format, clock name, alarm enable switches,
+surprise mode, low-battery alert, and alarm thresholds are editable in Home
+Assistant. Changes are staged locally; they are not sent to the clock until
+`nsclock.apply_settings` is called. Target an entity from the clock being
+configured:
 
 ```yaml
 action: nsclock.apply_settings
