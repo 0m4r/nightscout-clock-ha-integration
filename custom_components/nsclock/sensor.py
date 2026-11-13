@@ -29,6 +29,7 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
             NightscoutClockDataSourceSensor(coordinator, entry),
             NightscoutClockSourceStatusSensor(coordinator, entry),
             NightscoutClockFirmwareVersionSensor(coordinator, entry),
+            NightscoutClockFirmwareRevisionSensor(coordinator, entry),
             NightscoutClockCurrentFaceSensor(coordinator, entry),
             NightscoutClockBrightnessModeSensor(coordinator, entry),
             NightscoutClockBrightnessLevelSensor(coordinator, entry),
@@ -144,6 +145,26 @@ class NightscoutClockFirmwareVersionSensor(NightscoutClockEntity, SensorEntity):
     def native_value(self) -> Any:
         if self.coordinator.data:
             return self.coordinator.data.get("firmware_version")
+        return None
+
+
+class NightscoutClockFirmwareRevisionSensor(NightscoutClockEntity, SensorEntity):
+    """Firmware source revision sensor."""
+
+    def __init__(self, coordinator, config_entry: Any) -> None:
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id="firmware_revision",
+            name="Firmware Revision",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            icon="mdi:source-commit",
+        )
+
+    @property
+    def native_value(self) -> Any:
+        if self.coordinator.data:
+            return self.coordinator.data.get("firmware_revision")
         return None
 
 

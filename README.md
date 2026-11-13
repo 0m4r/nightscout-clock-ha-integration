@@ -8,7 +8,17 @@ This is a Home Assistant integration for
 
 ## Installation
 
-### HACS
+<!-- ha-marketplace:exclude-start -->
+
+### Home Assistant Marketplace (2026.11 and newer)
+
+[![Open this repository in the Home Assistant Marketplace](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=0m4r&repository=nightscout-clock-ha-integration&category=integration)
+
+In Home Assistant, open **Settings → Marketplace**, add this repository from
+the link above, install **Nightscout Clock**, then add it under **Settings →
+Devices & services**.
+
+### HACS (Home Assistant 2026.10 and older)
 
 1. In Home Assistant, open **HACS → Integrations**.
 2. Select the three-dot menu, then **Custom repositories**.
@@ -27,6 +37,8 @@ This is a Home Assistant integration for
 2. Restart Home Assistant.
 3. Go to **Settings → Devices & services → Add integration** and search for
    **Nightscout Clock**.
+
+<!-- ha-marketplace:exclude-end -->
 
 ### Configuration
 

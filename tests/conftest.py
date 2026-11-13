@@ -54,6 +54,7 @@ def mock_api_client() -> Generator[Any, None, None]:
 
         client.get_status = AsyncMock(return_value=status_data)
         client.get_version = AsyncMock(return_value="1.2.3")
+        client.get_revision = AsyncMock(return_value="abc123")
         client.get_auth_status = AsyncMock(
             return_value={"enabled": False, "authenticated": True, "hasPassword": False}
         )
@@ -63,6 +64,10 @@ def mock_api_client() -> Generator[Any, None, None]:
         client.report_glucose_entries = AsyncMock(return_value={"status": "ok"})
         client.restart = AsyncMock(return_value={"status": "ok"})
         client.set_face = AsyncMock(return_value={"status": "ok", "face": "big_text"})
+        client.next_face = AsyncMock(return_value={"status": "ok"})
+        client.previous_face = AsyncMock(return_value={"status": "ok"})
+        client.next_brightness = AsyncMock(return_value={"status": "ok"})
+        client.previous_brightness = AsyncMock(return_value={"status": "ok"})
         client.get_config = AsyncMock(
             return_value={
                 "brightness_mode": "manual",

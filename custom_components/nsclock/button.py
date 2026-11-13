@@ -18,6 +18,10 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
 
     buttons: list[ButtonEntity] = [
         NightscoutClockPlayAlarmButton(coordinator, entry, api),
+        NightscoutClockFaceNavigationButton(coordinator, entry, api, "next"),
+        NightscoutClockFaceNavigationButton(coordinator, entry, api, "previous"),
+        NightscoutClockBrightnessNavigationButton(coordinator, entry, api, "next"),
+        NightscoutClockBrightnessNavigationButton(coordinator, entry, api, "previous"),
     ]
 
     # Restart button is disabled by default (plan requirement).
@@ -48,6 +52,50 @@ class NightscoutClockPlayAlarmButton(NightscoutClockEntity, ButtonEntity):
     async def async_press(self) -> None:
         melody = self._config_entry.options.get("default_melody", DEFAULT_MELODY)
         await self._api.play_alarm(melody)
+
+
+class NightscoutClockFaceNavigationButton(NightscoutClockEntity, ButtonEntity):
+    """Navigate between active clock faces."""
+
+    def __init__(self, coordinator, config_entry, api, direction: str) -> None:
+        self._api = api
+        self._direction = direction
+        is_next = direction == "next"
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id=f"face_{direction}",
+            name=f"{direction.title()} Face",
+            icon="mdi:skip-forward" if is_next else "mdi:skip-backward",
+        )
+
+    async def async_press(self) -> None:
+        if self._direction == "next":
+            await self._api.next_face()
+        else:
+            await self._api.previous_face()
+
+
+class NightscoutClockBrightnessNavigationButton(NightscoutClockEntity, ButtonEntity):
+    """Navigate the temporary brightness cycle."""
+
+    def __init__(self, coordinator, config_entry, api, direction: str) -> None:
+        self._api = api
+        self._direction = direction
+        is_next = direction == "next"
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id=f"brightness_{direction}",
+            name=f"Brightness {direction.title()}",
+            icon="mdi:brightness-7" if is_next else "mdi:brightness-5",
+        )
+
+    async def async_press(self) -> None:
+        if self._direction == "next":
+            await self._api.next_brightness()
+        else:
+            await self._api.previous_brightness()
 
 
 class NightscoutClockRestartButton(NightscoutClockEntity, ButtonEntity):

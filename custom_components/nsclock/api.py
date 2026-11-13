@@ -123,6 +123,10 @@ class NightscoutClockApiClient:
         """Get firmware version."""
         return await self._request("GET", "/version.txt")
 
+    async def get_revision(self) -> str:
+        """Get firmware source revision."""
+        return await self._request("GET", "/revision.txt")
+
     async def get_auth_status(self) -> dict[str, Any]:
         """Check authentication status."""
         return await self._request("GET", "/api/auth/status")
@@ -146,6 +150,38 @@ class NightscoutClockApiClient:
     async def set_face(self, face: str) -> dict[str, Any]:
         """Temporarily switch the displayed face."""
         return await self._request("POST", "/api/face", {"face": face})
+
+    async def get_faces(self) -> list[dict[str, str]]:
+        """Get active clock faces in navigation order."""
+        return await self._request("GET", "/api/faces")
+
+    async def next_face(self) -> dict[str, Any]:
+        """Switch to the next active clock face."""
+        return await self._request("POST", "/api/face/next", {})
+
+    async def previous_face(self) -> dict[str, Any]:
+        """Switch to the previous active clock face."""
+        return await self._request("POST", "/api/face/prev", {})
+
+    async def next_brightness(self) -> dict[str, Any]:
+        """Advance one step in the temporary brightness cycle."""
+        return await self._request("POST", "/api/brightness/next", {})
+
+    async def previous_brightness(self) -> dict[str, Any]:
+        """Go back one step in the temporary brightness cycle."""
+        return await self._request("POST", "/api/brightness/prev", {})
+
+    async def get_brightness(self) -> dict[str, int]:
+        """Get the current temporary brightness value."""
+        return await self._request("GET", "/api/brightness")
+
+    async def set_brightness(self, value: int) -> dict[str, Any]:
+        """Set a temporary brightness value."""
+        return await self._request("POST", "/api/brightness", {"value": value})
+
+    async def scan_wifi(self) -> list[dict[str, Any]] | dict[str, Any]:
+        """Start or poll for a Wi-Fi scan result."""
+        return await self._request("GET", "/api/wifi/scan")
 
     async def get_config(self) -> dict[str, Any]:
         """Get current configuration.

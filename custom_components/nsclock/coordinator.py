@@ -231,6 +231,7 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ):
             version = await self.client.get_version()
             data["firmware_version"] = version
+            data["firmware_revision"] = await self.client.get_revision()
             self._last_version_fetch = now
 
         if (

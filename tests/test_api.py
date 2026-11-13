@@ -38,3 +38,33 @@ async def test_set_face_uses_face_endpoint() -> None:
         await client.set_face("big_text")
 
     request.assert_awaited_once_with("POST", "/api/face", {"face": "big_text"})
+
+
+async def test_new_firmware_and_display_endpoints() -> None:
+    client = NightscoutClockApiClient("nsclock.local")
+    with patch.object(
+        client, "_request", new_callable=AsyncMock, return_value="revision"
+    ) as request:
+        assert await client.get_revision() == "revision"
+    request.assert_awaited_once_with("GET", "/revision.txt")
+
+    calls = [
+        (client.get_faces, "GET", "/api/faces", None),
+        (client.next_face, "POST", "/api/face/next", {}),
+        (client.previous_face, "POST", "/api/face/prev", {}),
+        (client.next_brightness, "POST", "/api/brightness/next", {}),
+        (client.previous_brightness, "POST", "/api/brightness/prev", {}),
+        (client.get_brightness, "GET", "/api/brightness", None),
+        (client.scan_wifi, "GET", "/api/wifi/scan", None),
+    ]
+    for method, http_method, path, body in calls:
+        with patch.object(client, "_request", new_callable=AsyncMock) as request:
+            await method()
+        if body is not None:
+            request.assert_awaited_once_with(http_method, path, body)
+        else:
+            request.assert_awaited_once_with(http_method, path)
+
+    with patch.object(client, "_request", new_callable=AsyncMock) as request:
+        await client.set_brightness(101)
+    request.assert_awaited_once_with("POST", "/api/brightness", {"value": 101})
