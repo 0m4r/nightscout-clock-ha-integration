@@ -61,6 +61,7 @@ async def test_new_firmware_and_display_endpoints() -> None:
     request.assert_awaited_once_with("GET", "/revision.txt")
 
     calls = [
+        (client.restart, "POST", "/api/reset", None),
         (client.get_faces, "GET", "/api/faces", None),
         (client.next_face, "POST", "/api/face/next", None),
         (client.previous_face, "POST", "/api/face/prev", None),
