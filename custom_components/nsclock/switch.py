@@ -20,7 +20,6 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
 
     async_add_entities(
         [
-            NightscoutClockDisplaySwitch(coordinator, entry, api),
             NightscoutClockConfigSwitch(
                 coordinator, entry, "alarm_high_enabled", "High Alarm Enabled"
             ),
@@ -51,36 +50,6 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
             ),
         ]
     )
-
-
-class NightscoutClockDisplaySwitch(NightscoutClockEntity, SwitchEntity):
-    """Display power switch."""
-
-    def __init__(
-        self,
-        coordinator: NightscoutClockCoordinator,
-        config_entry: Any,
-        api: NightscoutClockApiClient,
-    ) -> None:
-        super().__init__(
-            coordinator,
-            config_entry,
-            object_id="display",
-            name="Display",
-            icon="mdi:display",
-        )
-        self._api = api
-
-    @property
-    def is_on(self) -> bool:
-        status = self.coordinator.data.get("status", {}) if self.coordinator.data else {}
-        return bool(status.get("isConnected", True))
-
-    async def async_turn_on(self, **kwargs) -> None:
-        await self._api.set_display_power("on")
-
-    async def async_turn_off(self, **kwargs) -> None:
-        await self._api.set_display_power("off")
 
 
 class NightscoutClockConfigSwitch(NightscoutClockEntity, SwitchEntity):

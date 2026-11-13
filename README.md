@@ -51,6 +51,10 @@ After adding the integration:
     - **Default melody**: RTTTL string for the "Play Alarm Melody" button (default: `high:d=4,o=5,b=125:4e7,p,4e7`).
     - **Enable restart button**: Toggle to show a restart button (disabled by default).
 
+Use the **Display On** and **Display Off** buttons to control the screen. The
+firmware does not report its current display power state, so these are action
+buttons rather than a stateful switch.
+
 ## Device settings
 
 Brightness mode and level, time format, clock name, alarm enable switches, and

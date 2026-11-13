@@ -18,6 +18,8 @@ async def async_setup_entry(hass, entry: NightscoutClockConfigEntry, async_add_e
 
     buttons: list[ButtonEntity] = [
         NightscoutClockPlayAlarmButton(coordinator, entry, api),
+        NightscoutClockDisplayPowerButton(coordinator, entry, api, "on"),
+        NightscoutClockDisplayPowerButton(coordinator, entry, api, "off"),
         NightscoutClockFaceNavigationButton(coordinator, entry, api, "next"),
         NightscoutClockFaceNavigationButton(coordinator, entry, api, "previous"),
         NightscoutClockBrightnessNavigationButton(coordinator, entry, api, "next"),
@@ -52,6 +54,25 @@ class NightscoutClockPlayAlarmButton(NightscoutClockEntity, ButtonEntity):
     async def async_press(self) -> None:
         melody = self._config_entry.options.get("default_melody", DEFAULT_MELODY)
         await self._api.play_alarm(melody)
+
+
+class NightscoutClockDisplayPowerButton(NightscoutClockEntity, ButtonEntity):
+    """Turn the display on or off without claiming to report its current state."""
+
+    def __init__(self, coordinator, config_entry, api, power: str) -> None:
+        self._api = api
+        self._power = power
+        is_on = power == "on"
+        super().__init__(
+            coordinator,
+            config_entry,
+            object_id=f"display_{power}",
+            name=f"Display {power.title()}",
+            icon="mdi:monitor" if is_on else "mdi:monitor-off",
+        )
+
+    async def async_press(self) -> None:
+        await self._api.set_display_power(self._power)
 
 
 class NightscoutClockFaceNavigationButton(NightscoutClockEntity, ButtonEntity):
