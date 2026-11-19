@@ -90,5 +90,10 @@ def mock_api_client() -> Generator[Any, None, None]:
             }
         )
         client.save_config = AsyncMock(return_value={"status": "ok"})
+        client.scan_wifi = AsyncMock(return_value=[{"ssid": "test-wifi", "rssi": -50}])
+        client.scan_llu_patients = AsyncMock(
+            return_value=[{"patientId": "test-patient", "firstName": "Vera", "lastName": "Kör"}]
+        )
+        client.get_logs = AsyncMock(return_value="Nightscout clock log buffer")
 
         yield client

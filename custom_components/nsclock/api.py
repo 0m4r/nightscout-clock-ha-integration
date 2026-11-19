@@ -141,6 +141,14 @@ class NightscoutClockApiClient:
         """Play alarm melody."""
         return await self._request("POST", "/api/alarm", {"rtttl": rtttl})
 
+    async def scan_llu_patients(self) -> list[dict[str, str]]:
+        """Fetch Libre Link Up patient list from the clock."""
+        return await self._request("GET", "/api/llu/patients")
+
+    async def get_logs(self) -> str:
+        """Fetch the clock's log buffer (plain text)."""
+        return await self._request("GET", "/api/logs")
+
     async def restart(self) -> dict[str, Any]:
         """Restart the clock."""
         return await self._request("POST", "/api/reset")

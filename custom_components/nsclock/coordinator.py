@@ -20,9 +20,10 @@ from .const import DEFAULT_POLLING_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-# Refresh /version.txt no more often than every 6 hours.
-VERSION_REFRESH_INTERVAL = timedelta(hours=6)
+# Refresh /version.txt and /revision.txt no more often than every 5 minutes,
+# matching the configuration cache.
 CONFIG_REFRESH_INTERVAL = timedelta(minutes=5)
+VERSION_REFRESH_INTERVAL = CONFIG_REFRESH_INTERVAL
 RESTART_POLL_INTERVAL = 2
 RESTART_TIMEOUT = 60
 
@@ -43,6 +44,17 @@ WRITABLE_CONFIG_OPTIONS: dict[str, tuple[type, Any]] = {
     "alarm_high_value": (int, None),
     "alarm_low_value": (int, None),
     "alarm_urgent_low_value": (int, None),
+    "low_urgent_mgdl": (int, None),
+    "high_urgent_mgdl": (int, None),
+    "custom_nodatatimer": (int, (6, 60)),
+    "custom_nodatatimer_enable": (bool, None),
+    "face_cycle_enabled": (bool, None),
+    "alarm_repeat_interval_seconds": (int, (30, 3600)),
+    "bg_color_normal": (str, {"green", "yellow", "red", "cyan", "blue", "magenta", "white"}),
+    "bg_color_low": (str, {"green", "yellow", "red", "cyan", "blue", "magenta", "white"}),
+    "bg_color_high": (str, {"green", "yellow", "red", "cyan", "blue", "magenta", "white"}),
+    "bg_color_urgent_low": (str, {"green", "yellow", "red", "cyan", "blue", "magenta", "white"}),
+    "bg_color_urgent_high": (str, {"green", "yellow", "red", "cyan", "blue", "magenta", "white"}),
 }
 
 
@@ -194,6 +206,32 @@ class NightscoutClockCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         updated_data = dict(self.data or {})
         updated_data["config"] = refreshed_config
         self.async_set_updated_data(updated_data)
+
+    async def async_request_refresh(self) -> None:
+        """Standard refresh — re-fetches all sensor/device data."""
+        await super().async_request_refresh()
+
+    async def force_refresh(self) -> None:
+        """Force re-fetch of /version.txt and /revision.txt, bypassing the
+        VERSION_REFRESH_INTERVAL cache. Updates coordinator.data in place."""
+        try:
+            version = await self.client.get_version()
+        except ConfigEntryAuthFailed:
+            raise
+        except NightscoutClockApiError as error:
+            _LOGGER.debug("Force refresh of firmware version failed: %s", error)
+            return
+
+        try:
+            revision = await self.client.get_revision()
+        except NightscoutClockApiError as error:
+            _LOGGER.debug("Force refresh of firmware revision failed: %s", error)
+            return
+
+        data = dict(self.data or {})
+        data["firmware_version"] = version
+        data["firmware_revision"] = revision
+        self.async_set_updated_data(data)
 
     async def _async_wait_for_restart(self) -> None:
         """Wait for the clock API to return after restarting."""

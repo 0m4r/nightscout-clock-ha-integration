@@ -3,7 +3,7 @@
 from typing import Any
 from unittest.mock import AsyncMock
 
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -109,3 +109,52 @@ async def test_auth_failure_propagates_for_reauthentication(
         pass
     else:
         raise AssertionError("Expected ConfigEntryAuthFailed")
+
+
+async def test_stage_and_apply_adds_new_config_keys(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    coordinator = await make_coordinator(hass, mock_config_entry, mock_api_client)
+    coordinator._config_cache = {
+        "clock_name": "Test Clock",
+        "alarm_high_value": 180,
+        "low_urgent_mgdl": 54,
+        "high_urgent_mgdl": 250,
+        "custom_nodatatimer": 30,
+        "custom_nodatatimer_enable": True,
+        "face_cycle_enabled": True,
+        "alarm_repeat_interval_seconds": 600,
+        "bg_color_normal": "green",
+        "bg_color_urgent_low": "yellow",
+    }
+    # Stage the same values so the apply service has staged settings to write.
+    for key, value in coordinator._config_cache.items():
+        coordinator.stage_config_value(key, value)
+    await coordinator.async_apply_settings()
+
+    assert mock_api_client.get_config.await_count == 2
+    # One initial fetch plus one during apply.
+    assert mock_api_client.get_config.await_count == 2
+
+    # The staged values must be merged into the full config before saving.
+    save_call = mock_api_client.save_config.await_args_list[0]
+    saved = save_call[0][0]  # positional arg: the full config dict
+    assert saved["low_urgent_mgdl"] == 54
+    assert saved["high_urgent_mgdl"] == 250
+    assert saved["custom_nodatatimer"] == 30
+    assert saved["face_cycle_enabled"] is True
+    assert saved["alarm_repeat_interval_seconds"] == 600
+    assert saved["bg_color_normal"] == "green"
+    assert saved["bg_color_urgent_low"] == "yellow"
+
+
+async def test_staging_unsupported_config_key_raises(
+    hass: Any, mock_config_entry: MockConfigEntry, mock_api_client: Any
+) -> None:
+    coordinator = await make_coordinator(hass, mock_config_entry, mock_api_client)
+    try:
+        coordinator.stage_config_value("some_unknown_key", True)
+    except HomeAssistantError:
+        pass
+    else:
+        raise AssertionError("Expected HomeAssistantError")
